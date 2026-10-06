@@ -9,6 +9,7 @@ tile-group scheduling. These choices are fixed and are not environment-tunable.
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 import torch
@@ -329,7 +330,22 @@ def _get_kernel(
     tile_groups_per_partition: int,
     stride_q_seq: int,
     stride_q_head: int,
+    num_queries: int = 1,
+    use_shared: bool = False,
+    use_v3: bool = False,
+    two_wave_pair: bool = False,
+    pairs_per_req: int = 1,
+    waves_per_group: int = 2,
+    rowpack_verify: bool = False,
 ):
+    if rowpack_verify and two_wave_pair:
+        raise ValueError("rowpack_verify cannot be combined with two_wave_pair")
+    if two_wave_pair:
+        num_queries = int(waves_per_group)
+    if rowpack_verify:
+        # Two packed tokens, one wavefront. The shared kernel owns the map.
+        num_queries = 2
+        use_shared = True
     key = (
         num_kv_heads,
         num_partitions,
@@ -342,6 +358,13 @@ def _get_kernel(
         tile_groups_per_partition,
         stride_q_seq,
         stride_q_head,
+        int(num_queries),
+        bool(use_shared),
+        bool(use_v3),
+        bool(two_wave_pair),
+        int(pairs_per_req) if (two_wave_pair or rowpack_verify) else 1,
+        int(os.environ.get("VLLM_ULTRAQUANT_KV_AUX", "0") or "0"),
+        bool(rowpack_verify),
     )
     cached = _KERN_CACHE.get(key)
     if cached is not None:
@@ -354,56 +377,120 @@ def _get_kernel(
     build_start = time.perf_counter()
     kmod = _ULTRAQUANT_MOD
     assert kmod is not None
-    kfn = kmod.build_ultraquant_decode_hd256_module(
-        num_seqs=num_seqs_hint,
-        num_kv_heads=num_kv_heads,
-        num_partitions=num_partitions,
-        padded_slot=padded_slot,
-        max_blocks_per_seq=max_blocks_per_seq,
-        softmax_scale=scale,
-        query_group_size=query_group_size,
-        kv_block_size=kv_block_size,
-        tile_groups_per_partition=tile_groups_per_partition,
-        fuse_qrot=fuse_qrot,
-        stride_q_seq=stride_q_seq,
-        stride_q_head=stride_q_head,
-    )
-    allocator = kmod.allocator
+    if use_v3 or (int(num_queries) == 1 and not use_shared):
+        kfn = kmod.build_ultraquant_decode_hd256_module(
+            num_seqs=num_seqs_hint,
+            num_kv_heads=num_kv_heads,
+            num_partitions=num_partitions,
+            padded_slot=padded_slot,
+            max_blocks_per_seq=max_blocks_per_seq,
+            softmax_scale=scale,
+            query_group_size=query_group_size,
+            kv_block_size=kv_block_size,
+            tile_groups_per_partition=tile_groups_per_partition,
+            fuse_qrot=fuse_qrot,
+            stride_q_seq=stride_q_seq,
+            stride_q_head=stride_q_head,
+            v3_layout=bool(use_v3),
+        )
+        allocator = kmod.allocator
+    else:
+        from vllm.v1.attention.ops.flydsl_kernels import (
+            ultraquant_decode_hd256_shared as shared_mod,
+        )
+
+        kfn = shared_mod.build_ultraquant_decode_hd256_shared_module(
+            num_seqs=num_seqs_hint,
+            num_kv_heads=num_kv_heads,
+            num_partitions=num_partitions,
+            padded_slot=padded_slot,
+            max_blocks_per_seq=max_blocks_per_seq,
+            softmax_scale=scale,
+            query_group_size=query_group_size,
+            kv_block_size=kv_block_size,
+            tile_groups_per_partition=tile_groups_per_partition,
+            fuse_qrot=fuse_qrot,
+            stride_q_seq=stride_q_seq,
+            stride_q_head=stride_q_head,
+            num_queries=int(num_queries),
+            two_wave_pair=bool(two_wave_pair),
+            pairs_per_req=int(pairs_per_req) if (two_wave_pair or rowpack_verify) else 1,
+            rowpack_verify=bool(rowpack_verify),
+        )
+        allocator = shared_mod.allocator
+        kmod = shared_mod
+    block_threads = int(kmod.BLOCK_THREADS)
     flyc = _FLYC
     fx = _FX
     T = _TYPING_T
     CompilationContext = _CC
     ir_mod = _IR
+    shared_launch = bool(use_shared)
 
-    @flyc.jit
-    def _launch(
-        out,
-        es,
-        ml,
-        q,
-        kvc,
-        cents,
-        bt,
-        sl,
-        gx: fx.Int32,  # type: ignore[name-defined]
-        gy: fx.Int32,  # type: ignore[name-defined]
-        gz: fx.Int32,  # type: ignore[name-defined]
-        stream: fx.Stream,  # type: ignore[name-defined]
-    ):
-        allocator.finalized = False
-        ctx = CompilationContext.get_current()
-        with ir_mod.InsertionPoint(ctx.gpu_module_body):
-            allocator.finalize()
-        from flydsl.expr import arith
+    if shared_launch:
 
-        grid_x = arith.index_cast(T.index, gx.ir_value())
-        grid_y = arith.index_cast(T.index, gy.ir_value())
-        grid_z = arith.index_cast(T.index, gz.ir_value())
-        kfn(out, es, ml, q, kvc, cents, bt, sl).launch(
-            grid=(grid_x, grid_y, grid_z),
-            block=(kmod.BLOCK_THREADS, 1, 1),
-            stream=stream,
-        )
+        @flyc.jit
+        def _launch(
+            out,
+            es,
+            ml,
+            q,
+            kvc,
+            cents,
+            bt,
+            sl,
+            qsl,
+            gx: fx.Int32,  # type: ignore[name-defined]
+            gy: fx.Int32,  # type: ignore[name-defined]
+            gz: fx.Int32,  # type: ignore[name-defined]
+            stream: fx.Stream,  # type: ignore[name-defined]
+        ):
+            allocator.finalized = False
+            ctx = CompilationContext.get_current()
+            with ir_mod.InsertionPoint(ctx.gpu_module_body):
+                allocator.finalize()
+            from flydsl.expr import arith
+
+            grid_x = arith.index_cast(T.index, gx.ir_value())
+            grid_y = arith.index_cast(T.index, gy.ir_value())
+            grid_z = arith.index_cast(T.index, gz.ir_value())
+            kfn(out, es, ml, q, kvc, cents, bt, sl, qsl).launch(
+                grid=(grid_x, grid_y, grid_z),
+                block=(block_threads, 1, 1),
+                stream=stream,
+            )
+
+    else:
+
+        @flyc.jit
+        def _launch(
+            out,
+            es,
+            ml,
+            q,
+            kvc,
+            cents,
+            bt,
+            sl,
+            gx: fx.Int32,  # type: ignore[name-defined]
+            gy: fx.Int32,  # type: ignore[name-defined]
+            gz: fx.Int32,  # type: ignore[name-defined]
+            stream: fx.Stream,  # type: ignore[name-defined]
+        ):
+            allocator.finalized = False
+            ctx = CompilationContext.get_current()
+            with ir_mod.InsertionPoint(ctx.gpu_module_body):
+                allocator.finalize()
+            from flydsl.expr import arith
+
+            grid_x = arith.index_cast(T.index, gx.ir_value())
+            grid_y = arith.index_cast(T.index, gy.ir_value())
+            grid_z = arith.index_cast(T.index, gz.ir_value())
+            kfn(out, es, ml, q, kvc, cents, bt, sl).launch(
+                grid=(grid_x, grid_y, grid_z),
+                block=(block_threads, 1, 1),
+                stream=stream,
+            )
 
     _KERN_CACHE[key] = _launch
     build_time = time.perf_counter() - build_start
@@ -586,6 +673,14 @@ def flydsl_ultraquant_decode_attention(
     buf_holder: Any = None,
     max_num_kv_splits: int = 32,
     sinks: torch.Tensor | None = None,
+    shared_queries: int = 1,
+    use_shared_kernel: bool = False,
+    two_wave_pair: bool = False,
+    query_start_loc: torch.Tensor | None = None,
+    pair_num_reqs: int = 0,
+    pairs_per_req: int = 1,
+    waves_per_group: int = 2,
+    rowpack_verify: bool = False,
 ) -> torch.Tensor:
     """Launch the optimized FlyDSL UltraQuant D=256 decode."""
     if not is_ultraquant_flydsl_available():
@@ -596,6 +691,41 @@ def flydsl_ultraquant_decode_attention(
         raise NotImplementedError("FlyDSL UltraQuant decode does not support sinks")
 
     B, Hq, D = query.shape
+    shared_queries = int(shared_queries)
+    two_wave_pair = bool(two_wave_pair)
+    rowpack_verify = bool(rowpack_verify)
+    waves_per_group = int(waves_per_group)
+    if rowpack_verify and two_wave_pair:
+        raise ValueError("rowpack_verify cannot be combined with two_wave_pair")
+    if two_wave_pair or rowpack_verify:
+        if two_wave_pair and waves_per_group not in (2, 3, 4):
+            raise ValueError(
+                f"waves_per_group must be 2, 3, or 4; got {waves_per_group}"
+            )
+        if query_start_loc is None or pair_num_reqs < 1 or pairs_per_req < 1:
+            raise ValueError(
+                "pair verify requires query_start_loc, pair_num_reqs, and pairs_per_req"
+            )
+        if block_table.shape[0] != pair_num_reqs or seq_lens.shape[0] != pair_num_reqs:
+            raise ValueError(
+                "pair verify block_table and seq_lens must have one row per request, "
+                f"got block_table {tuple(block_table.shape)} seq_lens {tuple(seq_lens.shape)} "
+                f"for {pair_num_reqs} requests"
+            )
+        if query_start_loc.shape[0] != pair_num_reqs + 1:
+            raise ValueError(
+                "query_start_loc must have pair_num_reqs + 1 entries, "
+                f"got {query_start_loc.shape[0]} for {pair_num_reqs} requests"
+            )
+    elif shared_queries < 1 or B % shared_queries != 0:
+        raise ValueError(
+            f"shared_queries={shared_queries} must divide query rows B={B}"
+        )
+    elif shared_queries > 1 and block_table.shape[0] != B // shared_queries:
+        raise ValueError(
+            "shared-KV block_table must have one row per query group, "
+            f"got {block_table.shape[0]} for {B // shared_queries} groups"
+        )
     Hk = kv_cache.shape[2]
     block_size = kv_cache.shape[1]
     padded_slot = int(kv_cache.shape[3])
@@ -608,6 +738,8 @@ def flydsl_ultraquant_decode_attention(
         f"UltraQuant FlyDSL supports GQA factor "
         f"{', '.join(map(str, _ULTRAQUANT_FLYDSL_GQA))}, got {QG}"
     )
+    if rowpack_verify and QG != 6:
+        raise ValueError(f"row-packed verify requires GQA 6, got {QG}")
 
     device = query.device
 
@@ -665,7 +797,15 @@ def flydsl_ultraquant_decode_attention(
     # ultraquant_decode_hd256.py lets the two num_partitions variants (256 & 512)
     # coexist across CUDA-graph batch buckets without the @flyc.jit
     # "global 'allocator' changed since first compile" drift crash.
-    MAX_PARTITIONS = 512 if B <= 8 else 256
+    _max_parts_env = int(os.environ.get("VLLM_ULTRAQUANT_MAX_PARTITIONS", "0") or "0")
+    if _max_parts_env not in (0, 128, 256, 512):
+        raise ValueError(
+            "VLLM_ULTRAQUANT_MAX_PARTITIONS must be 0, 128, 256, or 512; "
+            f"got {_max_parts_env}"
+        )
+    MAX_PARTITIONS = (
+        _max_parts_env if _max_parts_env else (512 if B <= 8 else 256)
+    )
     required_num_partitions = (
         sizing_max_seq_len + kv_compute_block - 1
     ) // kv_compute_block
@@ -684,7 +824,11 @@ def flydsl_ultraquant_decode_attention(
     # the effective range lands at ~96-192 tokens. At B=4 this is worth 27.9 ->
     # 24.4 us at seq=2048 and 27.0 -> 24.8 us at seq=16384, and is inert once
     # the context is long enough to want every partition (seq >= ~64k).
-    _tok_per_part = 192
+    _tok_per_part = int(os.environ.get("VLLM_ULTRAQUANT_TOK_PER_PART", "192") or "192")
+    if _tok_per_part not in (96, 192, 384):
+        raise ValueError(
+            f"VLLM_ULTRAQUANT_TOK_PER_PART must be 96, 192, or 384; got {_tok_per_part}"
+        )
     if _tok_per_part > 0:
         _useful_parts = max(
             1, (int(sizing_max_seq_len) + _tok_per_part - 1) // _tok_per_part
@@ -761,6 +905,9 @@ def flydsl_ultraquant_decode_attention(
 
     # ---- FlyDSL kernel launch --------------------------------------------
     max_bps = int(block_table.shape[1])
+    use_v3 = os.environ.get("VLLM_ULTRAQUANT_V3", "0") == "1"
+    if rowpack_verify and use_v3:
+        raise ValueError("row-packed verify does not support VLLM_ULTRAQUANT_V3")
     launch = _get_kernel(
         Hk,
         num_partitions,
@@ -774,6 +921,13 @@ def flydsl_ultraquant_decode_attention(
         tile_groups_per_partition=int(tile_groups_per_partition),
         stride_q_seq=int(q_for_kernel.stride(0)),
         stride_q_head=int(q_for_kernel.stride(1)),
+        num_queries=1 if use_v3 else shared_queries,
+        use_shared=False if use_v3 else bool(use_shared_kernel or shared_queries > 1),
+        use_v3=use_v3,
+        two_wave_pair=bool(two_wave_pair),
+        pairs_per_req=int(pairs_per_req),
+        waves_per_group=int(waves_per_group),
+        rowpack_verify=bool(rowpack_verify),
     )
     global _LOG_INVOKED_ONCE
     if not _LOG_INVOKED_ONCE:
@@ -781,7 +935,7 @@ def flydsl_ultraquant_decode_attention(
         logger.info(
             "FlyDSL UltraQuant launcher invoked: B=%d Hk=%d Hq=%d D=%d QG=%d "
             "num_partitions=%d (actual=%d, cap=%d) TGPP=%d max_bps=%d "
-            "block_size=%d padded_slot=%d max_seq_len=%d "
+            "block_size=%d padded_slot=%d max_seq_len=%d v3=%d "
             "(coverage=%d tokens, worst_case=%d tokens)",
             B,
             Hk,
@@ -796,10 +950,19 @@ def flydsl_ultraquant_decode_attention(
             int(block_size),
             padded_slot,
             int(max_seq_len),
+            int(use_v3),
             num_partitions * tile_groups_per_partition * kv_compute_block,
             worst_case_max_seq_len,
         )
-    launch(
+    use_shared_launch = (not use_v3) and bool(
+        use_shared_kernel or shared_queries > 1 or rowpack_verify
+    )
+    grid_x = (
+        int(pair_num_reqs) * int(pairs_per_req)
+        if (two_wave_pair or rowpack_verify)
+        else B // shared_queries
+    )
+    launch_args = [
         segm_out,
         segm_sum,
         segm_max,
@@ -808,11 +971,13 @@ def flydsl_ultraquant_decode_attention(
         centroids_c,
         block_table,
         seq_lens,
-        B,
-        Hk,
-        num_partitions,
-        torch.cuda.current_stream(),
+    ]
+    if use_shared_launch:
+        launch_args.append(query_start_loc if query_start_loc is not None else seq_lens)
+    launch_args.extend(
+        [grid_x, Hk, num_partitions, torch.cuda.current_stream()]
     )
+    launch(*launch_args)
 
     # ---- Reduce partitions -> [B, Hq, D] ---------------------------------
     # 64 splits the head-dim 4 ways, taking the grid from 32 to 128 workgroups.

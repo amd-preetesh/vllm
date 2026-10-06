@@ -20,6 +20,7 @@ carry no UltraQuant knowledge.
 
 import contextlib
 import math
+import os
 from dataclasses import dataclass, fields, replace
 from typing import Any, ClassVar
 
@@ -68,11 +69,37 @@ class UltraQuantMetadata(TurboQuantMetadata):
 
 
 class UltraQuantMetadataBuilder(TurboQuantMetadataBuilder):
-    """Classifies speculative verify requests as decodes (spec-as-decode)."""
+    """Classifies speculative verify requests as decodes (spec-as-decode).
+
+    With fused MTP enabled, the k draft steps share this metadata. ``seq_lens``
+    and ``slot_mapping`` are the speculator's persistent buffers. The draft
+    loop advances both in place, so attention metadata is not rebuilt between
+    draft tokens. Set ``VLLM_ULTRAQUANT_FUSED_MTP=0`` to keep the rebuild path.
+    """
 
     def __init__(self, kv_cache_spec, layer_names, vllm_config, device):
         super().__init__(kv_cache_spec, layer_names, vllm_config, device)
         self._init_reorder_batch_threshold(1, supports_spec_as_decode=True)
+        self.supports_draft_decode_metadata_update = (
+            os.environ.get("VLLM_ULTRAQUANT_FUSED_MTP", "1") != "0"
+        )
+        if self.supports_draft_decode_metadata_update:
+            logger.info_once(
+                "UltraQuant fused MTP draft is enabled. The k draft steps "
+                "keep one attention metadata object; seq_lens and slot "
+                "mappings advance in place."
+            )
+        else:
+            logger.info_once(
+                "UltraQuant fused MTP draft is disabled. Each draft step "
+                "rebuilds attention metadata."
+            )
+
+    def update_draft_decode_metadata(self, metadata: UltraQuantMetadata) -> None:
+        # Captured kernels already write the next draft step's seq_lens and
+        # slot_mapping into these tensors. max_seq_len stays the graph-wide
+        # upper bound so every step replays the same FlyDSL partition grid.
+        del metadata
 
     def build(self, common_prefix_len, common_attn_metadata, fast_build=False):
         metadata = super().build(common_prefix_len, common_attn_metadata, fast_build)
@@ -109,6 +136,101 @@ def _split_multi_query_decode(
             num_rows + 1, device=seq_lens.device, dtype=query_start_loc.dtype
         ),
         max_query_len=1,
+    )
+
+
+def _shared_kv_groups(
+    num_rows: int, attn_metadata: TurboQuantMetadata
+) -> tuple[int, torch.Tensor, torch.Tensor] | None:
+    """Group verify rows that share a block table so one KV scan scores them.
+
+    Returns ``(width, block_table, seq_lens)`` or ``None`` when the batch is
+    not a uniform pack of query groups. ``width`` is the number of queries
+    per shared scan. ``VLLM_ULTRAQUANT_SHARED_KV_WIDTH`` caps that width.
+    """
+    if os.environ.get("VLLM_ULTRAQUANT_V3", "0") == "1":
+        return None
+    if os.environ.get("VLLM_ULTRAQUANT_SHARED_KV", "0") == "0":
+        return None
+    # Host integers only. query_start_loc lives on the GPU, and reading it
+    # with int() syncs the device. That is illegal while a CUDA graph is
+    # capturing (hipErrorStreamCaptureUnsupported) and killed engine startup.
+    # Uniform MTP verify batches are exactly num_reqs * max_query_len rows;
+    # ragged batches stay on the per-token FlyDSL path.
+    qlen = int(attn_metadata.max_query_len)
+    num_reqs = int(attn_metadata.seq_lens.shape[0])
+    if qlen <= 1 or num_rows != num_reqs * qlen:
+        return None
+    width = int(os.environ.get("VLLM_ULTRAQUANT_SHARED_KV_WIDTH", "0") or "0")
+    if width <= 0 or width > qlen:
+        width = qlen
+    if qlen % width != 0:
+        return None
+    split = _split_multi_query_decode(num_rows, attn_metadata)
+    reps = qlen // width
+    block_table = attn_metadata.block_table
+    if reps > 1:
+        block_table = block_table.repeat_interleave(reps, dim=0)
+    return width, block_table, split.seq_lens
+
+
+def _rowpack_verify_requested() -> bool:
+    """Default off. One wavefront packs two QG=6 verify tokens into MFMA rows."""
+    return os.environ.get("VLLM_ULTRAQUANT_ROWPACK_VERIFY", "0") == "1"
+
+
+def _pair_verify_waves() -> int:
+    """Wavefronts per shared KV tile. Default 2 keeps the shipping pair path."""
+    waves = int(os.environ.get("VLLM_ULTRAQUANT_PAIR_WAVES", "2") or "2")
+    if waves not in (2, 3, 4):
+        raise ValueError(
+            f"VLLM_ULTRAQUANT_PAIR_WAVES must be 2, 3, or 4; got {waves}"
+        )
+    return waves
+
+
+def _pair_verify_plan(
+    num_rows: int,
+    attn_metadata: TurboQuantMetadata,
+    query_group_size: int,
+) -> tuple[int, int, torch.Tensor, torch.Tensor, torch.Tensor, int, bool] | None:
+    """Plan shared KV tiles from the live request boundaries.
+
+    The grid is ``num_reqs * ceil(max_query_len / tokens_per_tile)``, which is
+    fixed for a CUDA graph. Each workgroup reads ``query_start_loc`` on
+    device, so padded slots, ragged requests, and an odd leftover query do
+    not need a host copy of the block table. A host ``repeat_interleave`` is
+    captured by value and would replay the dummy block table from graph
+    capture.
+
+    ``VLLM_ULTRAQUANT_ROWPACK_VERIFY=1`` is checked first. It packs two QG=6
+    tokens into one wavefront and does not change the default pair-wave
+    count. Otherwise ``VLLM_ULTRAQUANT_PAIR_WAVES`` selects 2, 3, or 4
+    queries per tile. The default remains 2.
+    """
+    rowpack = (
+        _rowpack_verify_requested()
+        and int(query_group_size) == 6
+        and os.environ.get("VLLM_ULTRAQUANT_V3", "0") != "1"
+    )
+    pair_on = os.environ.get("VLLM_ULTRAQUANT_PAIR_VERIFY", "0") == "1"
+    if not rowpack and not pair_on:
+        return None
+    qlen = int(attn_metadata.max_query_len)
+    num_reqs = int(attn_metadata.seq_lens.shape[0])
+    if qlen < 2 or num_reqs < 1 or num_rows < 1:
+        return None
+    # Row-pack always consumes two tokens per tile. Pair waves stay independent.
+    waves = 2 if rowpack else _pair_verify_waves()
+    pairs = (qlen + waves - 1) // waves
+    return (
+        pairs,
+        num_reqs,
+        attn_metadata.block_table,
+        attn_metadata.seq_lens,
+        attn_metadata.query_start_loc,
+        waves,
+        rowpack,
     )
 
 
@@ -299,6 +421,91 @@ class UltraQuantAttentionImpl(TurboQuantAttentionImpl):
     ) -> torch.Tensor:
         num_rows = query.shape[0]
         if self._spec_decode and num_rows != attn_metadata.seq_lens.shape[0]:
+            paired = (
+                _pair_verify_plan(num_rows, attn_metadata, self.num_kv_groups)
+                if self._flydsl_decode_eligible
+                else None
+            )
+            if paired is not None:
+                pairs, num_reqs, block_table, seq_lens, query_start_loc, waves, rowpack = (
+                    paired
+                )
+                if rowpack:
+                    logger.info_once(
+                        "UltraQuant row-packed verify is enabled: one wavefront "
+                        "packs two query tokens into MFMA rows 0..5 and 6..11."
+                    )
+                    return flydsl_ultraquant_decode_attention(
+                        query=query,
+                        kv_cache=kv_cache,
+                        block_table=block_table,
+                        seq_lens=seq_lens,
+                        scale=self.scale,
+                        PiT=PiT,
+                        max_seq_len=attn_metadata.max_seq_len,
+                        output_buf=None,
+                        buf_holder=layer,
+                        max_num_kv_splits=self.max_num_kv_splits,
+                        sinks=self.sinks,
+                        shared_queries=2,
+                        use_shared_kernel=True,
+                        two_wave_pair=False,
+                        rowpack_verify=True,
+                        query_start_loc=query_start_loc,
+                        pair_num_reqs=num_reqs,
+                        pairs_per_req=pairs,
+                    )
+                logger.info_once(
+                    "UltraQuant pair verify is enabled: %d wavefronts share "
+                    "each KV tile. Rows come from query_start_loc, so ragged "
+                    "and odd verify lengths stay on this kernel.",
+                    waves,
+                )
+                return flydsl_ultraquant_decode_attention(
+                    query=query,
+                    kv_cache=kv_cache,
+                    block_table=block_table,
+                    seq_lens=seq_lens,
+                    scale=self.scale,
+                    PiT=PiT,
+                    max_seq_len=attn_metadata.max_seq_len,
+                    output_buf=None,
+                    buf_holder=layer,
+                    max_num_kv_splits=self.max_num_kv_splits,
+                    sinks=self.sinks,
+                    shared_queries=waves,
+                    two_wave_pair=True,
+                    query_start_loc=query_start_loc,
+                    pair_num_reqs=num_reqs,
+                    pairs_per_req=pairs,
+                    waves_per_group=waves,
+                )
+            grouped = (
+                _shared_kv_groups(num_rows, attn_metadata)
+                if self._flydsl_decode_eligible
+                else None
+            )
+            if grouped is not None:
+                width, block_table, seq_lens = grouped
+                logger.info_once(
+                    "UltraQuant shared-KV verify is enabled. Each KV tile is "
+                    "read once and scored for %d co-resident queries.",
+                    width,
+                )
+                return flydsl_ultraquant_decode_attention(
+                    query=query,
+                    kv_cache=kv_cache,
+                    block_table=block_table,
+                    seq_lens=seq_lens,
+                    scale=self.scale,
+                    PiT=PiT,
+                    max_seq_len=attn_metadata.max_seq_len,
+                    output_buf=None,
+                    buf_holder=layer,
+                    max_num_kv_splits=self.max_num_kv_splits,
+                    sinks=self.sinks,
+                    shared_queries=width,
+                )
             attn_metadata = _split_multi_query_decode(num_rows, attn_metadata)
             max_rows = max(
                 self._compilation_config.max_cudagraph_capture_size or 0,

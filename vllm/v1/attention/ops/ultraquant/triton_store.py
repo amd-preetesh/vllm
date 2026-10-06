@@ -33,6 +33,7 @@ from vllm.v1.attention.ops.ultraquant.format import (
     n_groups,
     slot_size,
     v_codes_offset,
+    v3_layout_enabled,
     v_scales_offset,
 )
 
@@ -128,6 +129,7 @@ def _ultraquant_store_kernel(
     K_SCALES_OFFSET: tl.constexpr,
     V_CODES_OFFSET: tl.constexpr,
     V_SCALES_OFFSET: tl.constexpr,
+    V3_LAYOUT: tl.constexpr,
     FP4_C: tl.constexpr,
     UE8M0_BIAS_C: tl.constexpr,
     # When 1, the FP4 midpoints and the sorted->bits remap are materialised as
@@ -148,9 +150,16 @@ def _ultraquant_store_kernel(
         return
     blk = slot // BLOCK_SIZE
     off = slot % BLOCK_SIZE
-    slot_base = (
-        blk * stride_cache_block + off * stride_cache_pos + head_idx * stride_cache_head
-    ).to(tl.int64)
+    block_base = (blk * stride_cache_block).to(tl.int64)
+    if V3_LAYOUT:
+        # Block-level SoA. K remains token-major; V codes are pre-shuffled
+        # into the exact 16x16x16 bf16 PV MFMA A-lane order.
+        k_record = HEAD_DIM // 2 + 16
+        slot_base = block_base + (off * H + head_idx) * k_record
+    else:
+        slot_base = (
+            block_base + off * stride_cache_pos + head_idx * stride_cache_head
+        )
     k_code_base = slot_base
     k_scale_base = slot_base + K_SCALES_OFFSET
     v_code_base = slot_base + V_CODES_OFFSET
@@ -248,12 +257,69 @@ def _ultraquant_store_kernel(
     v_bits_flat = tl.reshape(v_bits, [HEAD_DIM])
     v_pairs = tl.reshape(v_bits_flat, [HEAD_DIM // 2, 2])
     v_packed = tl.sum((v_pairs & 0xF) << shifts_4[None, :], axis=1).to(tl.uint8)
-    v_code_addrs = v_code_base + tl.arange(0, HEAD_DIM // 2)
-    tl.store(KV_cache_ptr + v_code_addrs, v_packed)
+    if V3_LAYOUT:
+        # Four token nibbles for one head dimension are adjacent. Updating a
+        # nibble uses 32-bit atomics because tokens are stored by independent
+        # Triton programs and CDNA atomics do not provide uint8 CAS.
+        d = tl.arange(0, HEAD_DIM)
+        tile = off // 16
+        tok = off % 16
+        tok_group = tok // 4
+        tok_in_group = tok % 4
+        hchunk = d // 16
+        head_local = d % 16
+        k_region = BLOCK_SIZE * H * (HEAD_DIM // 2 + 16)
+        v_head_bytes = BLOCK_SIZE * (HEAD_DIM // 2)
+        addr = (
+            block_base
+            + k_region
+            + head_idx * v_head_bytes
+            + tile * 2048
+            + tok_group * 512
+            + head_local * 32
+            + hchunk * 2
+            + tok_in_group // 2
+        )
+        word_addr = addr & ~3
+        bit_shift = (addr & 3) * 8 + (tok_in_group & 1) * 4
+        nibble = (v_bits_flat & 0xF).to(tl.uint32)
+        clear_mask = (~(0xF << bit_shift)).to(tl.uint32)
+        word_ptr = (KV_cache_ptr + word_addr).to(tl.pointer_type(tl.uint32))
+        tl.atomic_and(
+            word_ptr,
+            clear_mask,
+            sem="relaxed",
+            scope="gpu",
+        )
+        tl.atomic_or(
+            word_ptr,
+            nibble << bit_shift,
+            sem="relaxed",
+            scope="gpu",
+        )
+    else:
+        v_code_addrs = v_code_base + tl.arange(0, HEAD_DIM // 2)
+        tl.store(KV_cache_ptr + v_code_addrs, v_packed)
 
     v_byte = tl.where(v_is_zero, 0, v_exp + UE8M0_BIAS_C)
     v_byte = tl.where((v_byte < 0) | (v_byte > 255), 0, v_byte).to(tl.uint8)
-    v_scale_addrs = v_scale_base + g_offs
+    if V3_LAYOUT:
+        k_region = BLOCK_SIZE * H * (HEAD_DIM // 2 + 16)
+        v_codes_region = H * BLOCK_SIZE * (HEAD_DIM // 2)
+        tile = off // 16
+        tok = off % 16
+        v_scale_addrs = (
+            block_base
+            + k_region
+            + v_codes_region
+            + head_idx * BLOCK_SIZE * N_GROUPS_C
+            + tile * (16 * N_GROUPS_C)
+            + tok_group * (4 * N_GROUPS_C)
+            + g_offs * 4
+            + tok_in_group
+        )
+    else:
+        v_scale_addrs = v_scale_base + g_offs
     tl.store(KV_cache_ptr + v_scale_addrs, v_byte)
 
 
@@ -343,6 +409,7 @@ def ultraquant_store(
         K_SCALES_OFFSET=K_SCALES_OFFSET,
         V_CODES_OFFSET=V_CODES_OFFSET,
         V_SCALES_OFFSET=V_SCALES_OFFSET,
+        V3_LAYOUT=v3_layout_enabled(),
         FP4_C=c,
         UE8M0_BIAS_C=UE8M0_BIAS,
         CONST_TABLES=1,

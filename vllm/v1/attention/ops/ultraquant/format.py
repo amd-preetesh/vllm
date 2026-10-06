@@ -19,6 +19,7 @@ No per-token norm-fold. No V rotation. K is Hadamard-rotated at store.
 from __future__ import annotations
 
 import math
+import os
 
 # ── 15 unique FP4 E2M1 levels, sorted ascending ────
 FP4_LEVELS_SORTED: tuple[float, ...] = (
@@ -192,13 +193,28 @@ def v_scales_bytes(head_dim: int, group_size: int | None = None) -> int:
     return k_scales_bytes(head_dim, group_size)
 
 
+def v3_layout_enabled() -> bool:
+    """Aligned SoA slot used by the UQ v3 decode kernel.
+
+    Each scale region is padded to 16 bytes so the V-code plane starts on a
+    16-byte boundary. D=256 grows from 272 B to 288 B. Codes stay packed FP4.
+    """
+    return os.environ.get("VLLM_ULTRAQUANT_V3", "0") == "1"
+
+
+def _scale_stride(nbytes: int) -> int:
+    if not v3_layout_enabled():
+        return nbytes
+    return (nbytes + 15) & ~15
+
+
 def slot_size(head_dim: int, group_size: int | None = None) -> int:
     """Bytes per (token, head) slot."""
     return (
         k_codes_bytes(head_dim)
-        + k_scales_bytes(head_dim, group_size)
+        + _scale_stride(k_scales_bytes(head_dim, group_size))
         + v_codes_bytes(head_dim)
-        + v_scales_bytes(head_dim, group_size)
+        + _scale_stride(v_scales_bytes(head_dim, group_size))
     )
 
 
@@ -211,7 +227,7 @@ def k_scales_offset(head_dim: int, group_size: int | None = None) -> int:
 
 
 def v_codes_offset(head_dim: int, group_size: int | None = None) -> int:
-    return k_codes_bytes(head_dim) + k_scales_bytes(head_dim, group_size)
+    return k_codes_bytes(head_dim) + _scale_stride(k_scales_bytes(head_dim, group_size))
 
 
 def v_scales_offset(head_dim: int, group_size: int | None = None) -> int:
