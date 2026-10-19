@@ -18,8 +18,8 @@ _MODULES = {
     "": "vllm.v1.attention.ops.flydsl_kernels.pdv_flydsl_decode_hd256",
     "shipping": "vllm.v1.attention.ops.flydsl_kernels.pdv_flydsl_decode_hd256",
     "pdv1.0": "vllm.v1.attention.ops.flydsl_kernels.pdv_flydsl_decode_hd256",
-    # PDV 1.1 is added on the hoist-k branch; keep aliases reserved here so
-    # an accidental env set fails clearly until that module is present.
+    "hoist_k": "vllm.v1.attention.ops.flydsl_kernels.pdv_flydsl_decode_hd256_hoist_k",
+    "pdv1.1": "vllm.v1.attention.ops.flydsl_kernels.pdv_flydsl_decode_hd256_hoist_k",
 }
 
 
@@ -33,10 +33,9 @@ def load_pdv_module():
     name = pdv_experiment_name()
     module_name = _MODULES.get(name)
     if module_name is None:
-        known = ", ".join(sorted(k for k in _MODULES if k)) or "(default)"
+        known = ", ".join(sorted(k for k in _MODULES if k))
         raise ValueError(
-            "VLLM_ULTRAQUANT_PDV_EXPERIMENT must be empty, shipping, pdv1.0"
-            + (f", {known}" if known != "(default)" else "")
-            + f"; got {name!r}"
+            "VLLM_ULTRAQUANT_PDV_EXPERIMENT must be empty, "
+            f"{known}; got {name!r}"
         )
     return importlib.import_module(module_name)

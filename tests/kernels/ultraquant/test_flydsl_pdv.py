@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
-"""PDV 1.0 packed-verify FlyDSL matches one Prod FlyDSL launch per token."""
+"""PDV packed-verify FlyDSL matches one Prod FlyDSL launch per token."""
 
 from __future__ import annotations
 
@@ -67,7 +67,14 @@ def _compare(actual, expected, tag):
 
 
 @pytest.mark.parametrize("num_queries", [2, 5, 6])
-def test_pdv1_matches_separate_flydsl(num_queries, monkeypatch):
+@pytest.mark.parametrize(
+    "pdv_experiment,tag",
+    [
+        ("", "pdv1.0"),
+        ("hoist_k", "pdv1.1"),
+    ],
+)
+def test_pdv_matches_separate_flydsl(num_queries, pdv_experiment, tag, monkeypatch):
     if not ultraquant_flydsl_decode_eligible(
         head_size=256,
         num_kv_groups=6,
@@ -77,8 +84,10 @@ def test_pdv1_matches_separate_flydsl(num_queries, monkeypatch):
     ):
         pytest.skip("UltraQuant D=256 FlyDSL kernel is unavailable")
 
-    monkeypatch.setenv("VLLM_ULTRAQUANT_PDV_EXPERIMENT", "")
-    monkeypatch.delenv("VLLM_ULTRAQUANT_PDV_EXPERIMENT", raising=False)
+    if pdv_experiment:
+        monkeypatch.setenv("VLLM_ULTRAQUANT_PDV_EXPERIMENT", pdv_experiment)
+    else:
+        monkeypatch.delenv("VLLM_ULTRAQUANT_PDV_EXPERIMENT", raising=False)
 
     set_random_seed(0x504456 + num_queries)
     device = torch.device("cuda")
@@ -120,7 +129,10 @@ def test_pdv1_matches_separate_flydsl(num_queries, monkeypatch):
         )
     separate = torch.cat(separate, dim=0)
 
-    os.environ["VLLM_ULTRAQUANT_PDV_EXPERIMENT"] = ""
+    if pdv_experiment:
+        os.environ["VLLM_ULTRAQUANT_PDV_EXPERIMENT"] = pdv_experiment
+    else:
+        os.environ.pop("VLLM_ULTRAQUANT_PDV_EXPERIMENT", None)
     pdv = flydsl_ultraquant_decode_attention(
         query=query,
         kv_cache=kv_cache,
@@ -133,4 +145,4 @@ def test_pdv1_matches_separate_flydsl(num_queries, monkeypatch):
         use_shared_kernel=True,
         pdv_verify=True,
     )
-    _compare(pdv, separate, f"pdv1.0 k={num_queries} seq={seq_len}")
+    _compare(pdv, separate, f"{tag} k={num_queries} seq={seq_len}")
