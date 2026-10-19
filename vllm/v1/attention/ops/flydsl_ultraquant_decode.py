@@ -337,12 +337,23 @@ def _get_kernel(
     pairs_per_req: int = 1,
     waves_per_group: int = 2,
     rowpack_verify: bool = False,
+    pdv_verify: bool = False,
 ):
     if rowpack_verify and two_wave_pair:
         raise ValueError("rowpack_verify cannot be combined with two_wave_pair")
-    if two_wave_pair:
+    if pdv_verify and (rowpack_verify or two_wave_pair):
+        raise ValueError("pdv_verify cannot be combined with rowpack or pair waves")
+    if pdv_verify:
+        if not 1 <= int(num_queries) <= 8:
+            raise ValueError(
+                f"PDV verifies 1..8 tokens; got {num_queries}"
+            )
+        if not fuse_qrot:
+            raise ValueError("PDV FlyDSL requires in-kernel Q rotation")
+        use_shared = True
+    elif two_wave_pair:
         num_queries = int(waves_per_group)
-    if rowpack_verify:
+    elif rowpack_verify:
         # Two packed tokens, one wavefront. The shared kernel owns the map.
         num_queries = 2
         use_shared = True
@@ -365,6 +376,8 @@ def _get_kernel(
         int(pairs_per_req) if (two_wave_pair or rowpack_verify) else 1,
         int(os.environ.get("VLLM_ULTRAQUANT_KV_AUX", "0") or "0"),
         bool(rowpack_verify),
+        bool(pdv_verify),
+        os.environ.get("VLLM_ULTRAQUANT_PDV_EXPERIMENT", "").strip(),
     )
     cached = _KERN_CACHE.get(key)
     if cached is not None:
@@ -377,7 +390,31 @@ def _get_kernel(
     build_start = time.perf_counter()
     kmod = _ULTRAQUANT_MOD
     assert kmod is not None
-    if use_v3 or (int(num_queries) == 1 and not use_shared):
+    if pdv_verify:
+        from vllm.v1.attention.ops.flydsl_kernels.pdv_experiment import (
+            load_pdv_module,
+        )
+
+        pdv_mod = load_pdv_module()
+
+        kfn = pdv_mod.build_pdv_flydsl_decode_hd256_module(
+            num_seqs=num_seqs_hint,
+            num_kv_heads=num_kv_heads,
+            num_partitions=num_partitions,
+            padded_slot=padded_slot,
+            max_blocks_per_seq=max_blocks_per_seq,
+            softmax_scale=scale,
+            query_group_size=query_group_size,
+            kv_block_size=kv_block_size,
+            tile_groups_per_partition=tile_groups_per_partition,
+            fuse_qrot=True,
+            stride_q_seq=stride_q_seq,
+            stride_q_head=stride_q_head,
+            num_verify_tokens=int(num_queries),
+        )
+        allocator = pdv_mod.allocator
+        kmod = pdv_mod
+    elif use_v3 or (int(num_queries) == 1 and not use_shared):
         kfn = kmod.build_ultraquant_decode_hd256_module(
             num_seqs=num_seqs_hint,
             num_kv_heads=num_kv_heads,
@@ -681,6 +718,7 @@ def flydsl_ultraquant_decode_attention(
     pairs_per_req: int = 1,
     waves_per_group: int = 2,
     rowpack_verify: bool = False,
+    pdv_verify: bool = False,
 ) -> torch.Tensor:
     """Launch the optimized FlyDSL UltraQuant D=256 decode."""
     if not is_ultraquant_flydsl_available():
@@ -694,10 +732,13 @@ def flydsl_ultraquant_decode_attention(
     shared_queries = int(shared_queries)
     two_wave_pair = bool(two_wave_pair)
     rowpack_verify = bool(rowpack_verify)
+    pdv_verify = bool(pdv_verify)
     waves_per_group = int(waves_per_group)
     if rowpack_verify and two_wave_pair:
         raise ValueError("rowpack_verify cannot be combined with two_wave_pair")
-    if two_wave_pair or rowpack_verify:
+    if pdv_verify and (rowpack_verify or two_wave_pair):
+        raise ValueError("pdv_verify cannot be combined with rowpack or pair waves")
+    if two_wave_pair or rowpack_verify or pdv_verify:
         if two_wave_pair and waves_per_group not in (2, 3, 4):
             raise ValueError(
                 f"waves_per_group must be 2, 3, or 4; got {waves_per_group}"
@@ -740,6 +781,12 @@ def flydsl_ultraquant_decode_attention(
     )
     if rowpack_verify and QG != 6:
         raise ValueError(f"row-packed verify requires GQA 6, got {QG}")
+    if pdv_verify and QG != 6:
+        raise ValueError(f"PDV FlyDSL requires GQA 6, got {QG}")
+    if pdv_verify and not 2 <= shared_queries <= 8:
+        raise ValueError(
+            f"PDV FlyDSL verifies 2..8 tokens; got {shared_queries}"
+        )
 
     device = query.device
 
@@ -803,8 +850,9 @@ def flydsl_ultraquant_decode_attention(
             "VLLM_ULTRAQUANT_MAX_PARTITIONS must be 0, 128, 256, or 512; "
             f"got {_max_parts_env}"
         )
+    _cap_batch = int(pair_num_reqs) if pdv_verify else B
     MAX_PARTITIONS = (
-        _max_parts_env if _max_parts_env else (512 if B <= 8 else 256)
+        _max_parts_env if _max_parts_env else (512 if _cap_batch <= 8 else 256)
     )
     required_num_partitions = (
         sizing_max_seq_len + kv_compute_block - 1
@@ -908,6 +956,13 @@ def flydsl_ultraquant_decode_attention(
     use_v3 = os.environ.get("VLLM_ULTRAQUANT_V3", "0") == "1"
     if rowpack_verify and use_v3:
         raise ValueError("row-packed verify does not support VLLM_ULTRAQUANT_V3")
+    if pdv_verify and use_v3:
+        raise ValueError("PDV FlyDSL does not support VLLM_ULTRAQUANT_V3")
+    if pdv_verify and not _inkernel_qrot:
+        raise ValueError(
+            "PDV FlyDSL requires the in-kernel query rotation. "
+            "The query tensor must be a contiguous head-dim bf16 view."
+        )
     launch = _get_kernel(
         Hk,
         num_partitions,
@@ -928,6 +983,7 @@ def flydsl_ultraquant_decode_attention(
         pairs_per_req=int(pairs_per_req),
         waves_per_group=int(waves_per_group),
         rowpack_verify=bool(rowpack_verify),
+        pdv_verify=bool(pdv_verify),
     )
     global _LOG_INVOKED_ONCE
     if not _LOG_INVOKED_ONCE:
@@ -955,13 +1011,14 @@ def flydsl_ultraquant_decode_attention(
             worst_case_max_seq_len,
         )
     use_shared_launch = (not use_v3) and bool(
-        use_shared_kernel or shared_queries > 1 or rowpack_verify
+        use_shared_kernel or shared_queries > 1 or rowpack_verify or pdv_verify
     )
-    grid_x = (
-        int(pair_num_reqs) * int(pairs_per_req)
-        if (two_wave_pair or rowpack_verify)
-        else B // shared_queries
-    )
+    if pdv_verify:
+        grid_x = int(pair_num_reqs)
+    elif two_wave_pair or rowpack_verify:
+        grid_x = int(pair_num_reqs) * int(pairs_per_req)
+    else:
+        grid_x = B // shared_queries
     launch_args = [
         segm_out,
         segm_sum,

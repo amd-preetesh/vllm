@@ -32,6 +32,7 @@ from vllm.config.cache import CacheDType
 from vllm.logger import init_logger
 from vllm.v1.attention.backend import AttentionType
 from vllm.v1.attention.backends.fa_utils import get_flash_attn_version
+from vllm.utils.math_utils import round_up
 from vllm.v1.attention.backends.turboquant_attn import (
     _CONTINUATION_DECODE_THRESHOLD,
     _HAS_FLASH_ATTN,
@@ -94,6 +95,63 @@ class UltraQuantMetadataBuilder(TurboQuantMetadataBuilder):
                 "UltraQuant fused MTP draft is disabled. Each draft step "
                 "rebuilds attention metadata."
             )
+
+    def _reserve_workspace(self) -> None:
+        """Reserve decode + continuation scratch before KV pool sizing.
+
+        TurboQuant's reserve only covers fp16 dequant buffers. UltraQuant
+        continuation also needs bf16 K/V concat targets at max_model_len
+        (~516 MiB × 2). Growing that after the KV pool fills OOMs with 0 free.
+        """
+        if not is_workspace_manager_initialized():
+            return
+
+        scheduler_config = self.vllm_config.scheduler_config
+        model_config = self.vllm_config.model_config
+        parallel_config = self.vllm_config.parallel_config
+
+        max_num_reqs = scheduler_config.max_num_seqs
+        num_heads = model_config.get_num_attention_heads(parallel_config)
+        num_kv_heads = self.kv_cache_spec.num_kv_heads
+        head_size = self.kv_cache_spec.head_size
+        max_num_splits = (
+            self.vllm_config.attention_config.tq_max_kv_splits_for_cuda_graph
+        )
+        qdtype = model_config.dtype
+
+        current_workspace_manager().get_simultaneous(
+            ((max_num_reqs, num_heads, max_num_splits, head_size + 1), torch.float32),
+            ((max_num_reqs, num_heads, head_size), qdtype),
+            ((max_num_reqs, num_heads), torch.float32),
+        )
+
+        reserve_continuation_prefill = (
+            scheduler_config.enable_chunked_prefill
+            and scheduler_config.max_num_batched_tokens > _CONTINUATION_DECODE_THRESHOLD
+        )
+        if not reserve_continuation_prefill:
+            return
+
+        # Match _ultraquant_continuation_prefill: dequant outs + concat targets.
+        max_model_len = model_config.max_model_len
+        block_size = self.kv_cache_spec.block_size
+        max_cached_len = max(0, max_model_len - 1)
+        alloc_len = round_up(max_cached_len, block_size)
+        full_cap = round_up(max_model_len, block_size)
+        buf_shape = (1, num_kv_heads, alloc_len, head_size)
+        full_shape = (full_cap, num_kv_heads, head_size)
+        current_workspace_manager().get_simultaneous(
+            (buf_shape, qdtype),
+            (buf_shape, qdtype),
+            (full_shape, qdtype),
+            (full_shape, qdtype),
+        )
+        logger.info_once(
+            "UltraQuant reserved continuation workspace for max_model_len=%s "
+            "(dequant+concat, dtype=%s).",
+            max_model_len,
+            qdtype,
+        )
 
     def update_draft_decode_metadata(self, metadata: UltraQuantMetadata) -> None:
         # Captured kernels already write the next draft step's seq_lens and
@@ -179,8 +237,16 @@ def _rowpack_verify_requested() -> bool:
     return os.environ.get("VLLM_ULTRAQUANT_ROWPACK_VERIFY", "0") == "1"
 
 
+def _pdv_verify_requested() -> bool:
+    """Default on. One cache read scores every verify token.
+
+    Set VLLM_ULTRAQUANT_PDV_VERIFY=0 to fall back to the 2-wave pair path.
+    """
+    return os.environ.get("VLLM_ULTRAQUANT_PDV_VERIFY", "1") == "1"
+
+
 def _pair_verify_waves() -> int:
-    """Wavefronts per shared KV tile. Default 2 keeps the shipping pair path."""
+    """Wavefronts per shared KV tile when PDV verify is turned off."""
     waves = int(os.environ.get("VLLM_ULTRAQUANT_PAIR_WAVES", "2") or "2")
     if waves not in (2, 3, 4):
         raise ValueError(
@@ -421,6 +487,45 @@ class UltraQuantAttentionImpl(TurboQuantAttentionImpl):
     ) -> torch.Tensor:
         num_rows = query.shape[0]
         if self._spec_decode and num_rows != attn_metadata.seq_lens.shape[0]:
+            qlen = int(attn_metadata.max_query_len)
+            if (
+                _pdv_verify_requested()
+                and self._flydsl_decode_eligible
+                and int(self.num_kv_groups) == 6
+                and os.environ.get("VLLM_ULTRAQUANT_V3", "0") != "1"
+                and 2 <= qlen <= 8
+            ):
+                num_reqs = int(attn_metadata.seq_lens.shape[0])
+                logger.info_once(
+                    "PDV FlyDSL verify is enabled: one cache read scores %d "
+                    "verify tokens. Query rows are packed across %d matrix "
+                    "instructions. Experiment=%s.",
+                    qlen,
+                    (qlen * 6 + 15) // 16,
+                    os.environ.get("VLLM_ULTRAQUANT_PDV_EXPERIMENT", "").strip()
+                    or "shipping",
+                )
+                return flydsl_ultraquant_decode_attention(
+                    query=query,
+                    kv_cache=kv_cache,
+                    block_table=attn_metadata.block_table,
+                    seq_lens=attn_metadata.seq_lens,
+                    scale=self.scale,
+                    PiT=PiT,
+                    max_seq_len=attn_metadata.max_seq_len,
+                    output_buf=None,
+                    buf_holder=layer,
+                    max_num_kv_splits=self.max_num_kv_splits,
+                    sinks=self.sinks,
+                    shared_queries=qlen,
+                    use_shared_kernel=True,
+                    two_wave_pair=False,
+                    rowpack_verify=False,
+                    pdv_verify=True,
+                    query_start_loc=attn_metadata.query_start_loc,
+                    pair_num_reqs=num_reqs,
+                    pairs_per_req=1,
+                )
             paired = (
                 _pair_verify_plan(num_rows, attn_metadata, self.num_kv_groups)
                 if self._flydsl_decode_eligible
@@ -750,12 +855,18 @@ class UltraQuantAttentionImpl(TurboQuantAttentionImpl):
         block_size = kv_cache.shape[1]
         alloc_len = math.ceil(cached_len / block_size) * block_size
 
-        # Dequant target, shared across layers by the workspace manager so long
-        # context does not pay one allocation per layer.
+        # Dequant + concat targets are shared across layers by the workspace
+        # manager. Per-layer caches at max_model_len (≈516 MiB each for K and V
+        # at 262k, D=256, Hk=4) OOM once the KV pool fills the GPU: the first
+        # long continuation allocates layer 0, then layer 1, and so on.
         buf_shape = (1, Hk, alloc_len, D)
-        k_buf, v_buf = current_workspace_manager().get_simultaneous(
+        full_cap = math.ceil(seq_len / block_size) * block_size
+        full_shape = (full_cap, Hk, D)
+        k_buf, v_buf, k_full_buf, v_full_buf = current_workspace_manager().get_simultaneous(
             (buf_shape, qdtype),
             (buf_shape, qdtype),
+            (full_shape, qdtype),
+            (full_shape, qdtype),
         )
         ultraquant_full_dequant_kv(
             kv_cache=kv_cache,
@@ -765,24 +876,6 @@ class UltraQuantAttentionImpl(TurboQuantAttentionImpl):
             alloc_len=alloc_len,
         )
 
-        # Layer-cached prefix+chunk concatenation, grown once to worst case.
-        cap = block_table.shape[1] * block_size
-        k_full_buf = getattr(layer, "_uq_kfull_buf", None)
-        if (
-            k_full_buf is None
-            or k_full_buf.shape[0] < cap
-            or k_full_buf.dtype != qdtype
-        ):
-            k_full_buf = torch.empty(cap, Hk, D, dtype=qdtype, device=device)
-            layer._uq_kfull_buf = k_full_buf
-        v_full_buf = getattr(layer, "_uq_vfull_buf", None)
-        if (
-            v_full_buf is None
-            or v_full_buf.shape[0] < cap
-            or v_full_buf.dtype != qdtype
-        ):
-            v_full_buf = torch.empty(cap, Hk, D, dtype=qdtype, device=device)
-            layer._uq_vfull_buf = v_full_buf
         k_full = k_full_buf[:seq_len]
         v_full = v_full_buf[:seq_len]
 
