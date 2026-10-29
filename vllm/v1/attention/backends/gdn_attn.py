@@ -37,6 +37,13 @@ class GDNAttentionBackend(AttentionBackend):
     def is_ssm(cls) -> bool:
         return True
 
+    @classmethod
+    def supports_device_cpu_query_lens_mismatch(cls) -> bool:
+        # Pure spec-decode reads its plan from DEVICE offsets (spec_query_start_loc),
+        # so CPU/device mismatch is fine for adaptive verification; the mixed branch
+        # still assumes CPU totals match. Same opt-in as Kimi-K3 KDA (#52988).
+        return True
+
 
 @dataclass
 class GDNAttentionMetadata:
@@ -84,6 +91,23 @@ class GDNAttentionMetadataBuilder(AttentionMetadataBuilder[GDNAttentionMetadata]
     _cudagraph_support = AttentionCGSupport.UNIFORM_BATCH
 
     reorder_batch_threshold: int = 1
+
+    @classmethod
+    def get_cudagraph_support(  # type: ignore[override]
+        cls,
+        vllm_config: VllmConfig,
+        kv_cache_spec,
+    ) -> AttentionCGSupport:
+        # Adaptive verification captures varlen decode graphs; pure-spec GDN
+        # already plans from device offsets inside a fixed (num_spec+1) window,
+        # so one graph can replay any 1..k+1 mix (Kimi-K3 KDA / DeepSeek pattern).
+        speculative_config = vllm_config.speculative_config
+        if (
+            speculative_config is not None
+            and speculative_config.enable_adaptive_verification
+        ):
+            return AttentionCGSupport.ALWAYS
+        return cls._cudagraph_support
 
     def __init__(
         self,

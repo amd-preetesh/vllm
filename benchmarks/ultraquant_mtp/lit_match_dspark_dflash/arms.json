@@ -1,0 +1,83 @@
+{
+  "suite": "lit_match_qwen38",
+  "model": "/huggingface/pretrained_models/Qwen/Qwen3.8-27B",
+  "tp": 1,
+  "concs": [1, 8, 32],
+  "seed": 42,
+  "max_model_len": 32768,
+  "mnbt": 8192,
+  "max_num_seqs": 256,
+  "max_tokens": 2048,
+  "util": 0.90,
+  "block_size_fp8": 16,
+  "nreq": 128,
+  "dataset": "datasets/lit_match_128.jsonl",
+  "sampling": {
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "top_k": 20,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "repetition_penalty": 1.0,
+    "reasoning_effort": "xhigh",
+    "enable_thinking": true,
+    "preserve_thinking": true,
+    "note": "HF Qwen3.8-27B thinking-mode card (RadixArk/DFlash literature match)"
+  },
+  "drafts": {
+    "dspark": "/workspace/pretrained_models/RadixArk/Qwen3.8-27B-DSpark",
+    "dflash": "/workspace/pretrained_models/z-lab/Qwen3.8-27B-DFlash2"
+  },
+  "pass_gates": {
+    "c1": {"dspark": 2.0, "dflash": 2.5},
+    "c8": {"dspark": 1.5, "dflash": 1.5},
+    "c32": {"dspark": 1.1, "dflash": 1.1},
+    "accept_min": {"dspark": 2.5, "dflash": 3.0}
+  },
+  "arms": [
+    {
+      "id": "fp8_nospec",
+      "label": "FP8 + no spec",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "spec": null
+    },
+    {
+      "id": "fp8_mtp",
+      "label": "FP8 + MTP",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "spec": {
+        "method": "mtp",
+        "num_speculative_tokens": 5
+      }
+    },
+    {
+      "id": "fp8_dspark",
+      "label": "FP8 + DSpark",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "spec": {
+        "method": "dspark",
+        "model_key": "dspark",
+        "num_speculative_tokens": 7,
+        "draft_sample_method": "probabilistic",
+        "attention_backend": "TRITON_ATTN",
+        "kv_cache_dtype": "fp8"
+      }
+    },
+    {
+      "id": "fp8_dflash",
+      "label": "FP8 + DFlash2",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "spec": {
+        "method": "dflash",
+        "model_key": "dflash",
+        "num_speculative_tokens": 7,
+        "attention_backend": "TRITON_ATTN",
+        "kv_cache_dtype": "fp8"
+      }
+    }
+  ]
+}

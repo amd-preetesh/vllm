@@ -1,0 +1,152 @@
+{
+  "ts": 1793311402.9319007,
+  "iso": "2026-10-29T22:03:22Z",
+  "lit_cells": [
+    {
+      "arm": "fp8_nospec",
+      "conc": 1,
+      "status": "DONE",
+      "metrics": {
+        "arm": "fp8_nospec",
+        "conc": 1,
+        "output_tok_s": 93.46627089461676,
+        "accept_rate": null,
+        "accept_length": null,
+        "accept_length_draft_only": null,
+        "num_drafts": null,
+        "num_accepted_tokens": null,
+        "num_draft_tokens": null
+      },
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_nospec/c1_r1"
+    },
+    {
+      "arm": "fp8_nospec",
+      "conc": 8,
+      "status": "DONE",
+      "metrics": {
+        "arm": "fp8_nospec",
+        "conc": 8,
+        "output_tok_s": 576.411231244935,
+        "accept_rate": null,
+        "accept_length": null,
+        "accept_length_draft_only": null,
+        "num_drafts": null,
+        "num_accepted_tokens": null,
+        "num_draft_tokens": null
+      },
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_nospec/c8_r1"
+    },
+    {
+      "arm": "fp8_nospec",
+      "conc": 32,
+      "status": "DONE",
+      "metrics": {
+        "arm": "fp8_nospec",
+        "conc": 32,
+        "output_tok_s": 1834.7625570421471,
+        "accept_rate": null,
+        "accept_length": null,
+        "accept_length_draft_only": null,
+        "num_drafts": null,
+        "num_accepted_tokens": null,
+        "num_draft_tokens": null
+      },
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_nospec/c32_r1"
+    },
+    {
+      "arm": "fp8_mtp",
+      "conc": 1,
+      "status": "DONE",
+      "metrics": {
+        "arm": "fp8_mtp",
+        "conc": 1,
+        "output_tok_s": 137.98870572966032,
+        "accept_rate": 0.30719373952765633,
+        "accept_length": 2.535968697638282,
+        "accept_length_draft_only": 1.5359686976382818,
+        "num_drafts": 106829.0,
+        "num_accepted_tokens": 164086.0,
+        "num_draft_tokens": 534145.0
+      },
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_mtp/c1_r1"
+    },
+    {
+      "arm": "fp8_mtp",
+      "conc": 8,
+      "status": null,
+      "metrics": null,
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_mtp/c8_r1"
+    },
+    {
+      "arm": "fp8_mtp",
+      "conc": 32,
+      "status": null,
+      "metrics": null,
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_mtp/c32_r1"
+    },
+    {
+      "arm": "fp8_dspark",
+      "conc": 1,
+      "status": "DONE",
+      "metrics": {
+        "arm": "fp8_dspark",
+        "conc": 1,
+        "output_tok_s": 166.3526346762937,
+        "accept_rate": 0.28526800830762555,
+        "accept_length": 2.9968760581533793,
+        "accept_length_draft_only": 1.996876058153379,
+        "num_drafts": 91551.0,
+        "num_accepted_tokens": 182816.0,
+        "num_draft_tokens": 640857.0
+      },
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_dspark/c1_r1"
+    },
+    {
+      "arm": "fp8_dspark",
+      "conc": 8,
+      "status": null,
+      "metrics": null,
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_dspark/c8_r1"
+    },
+    {
+      "arm": "fp8_dspark",
+      "conc": 32,
+      "status": null,
+      "metrics": null,
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_dspark/c32_r1"
+    },
+    {
+      "arm": "fp8_dflash",
+      "conc": 1,
+      "status": null,
+      "metrics": null,
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_dflash/c1_r1"
+    },
+    {
+      "arm": "fp8_dflash",
+      "conc": 8,
+      "status": null,
+      "metrics": null,
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_dflash/c8_r1"
+    },
+    {
+      "arm": "fp8_dflash",
+      "conc": 32,
+      "status": null,
+      "metrics": null,
+      "path": "/workspace/vllm/out/lit_match_qwen38/fp8_dflash/c32_r1"
+    }
+  ],
+  "agentx_cells": [
+    {
+      "path": "/workspace/vllm/out/agentx_dspark_dflash_recovery/fp8_dspark_geom64/sa/seed42_c16",
+      "status": null,
+      "has_profile": false
+    },
+    {
+      "path": "/workspace/vllm/out/agentx_dspark_dflash_recovery/fp8_dspark_geom64/sa/seed42_c8",
+      "status": "DONE",
+      "has_profile": true
+    }
+  ]
+}

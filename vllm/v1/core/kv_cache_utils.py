@@ -2126,14 +2126,18 @@ def _get_packed_kv_cache_groups(
 def _uses_trailing_mtp_layers(vllm_config: VllmConfig) -> bool:
     """Whether the drafter's KV layers can be located positionally.
 
-    MTP drafters register their KV layers after the target layers, without a
-    distinguishing spec marker. DeepseekV4/V4.1 do this with ``dspark`` too.
-    The annotator separately checks that the groups partition the layers exactly.
+    MTP, DFlash, and Qwen-style DSpark drafters register their KV layers after
+    the target layers, without a distinguishing spec marker. DeepseekV4/V4.1
+    do this with ``dspark`` too. Without this fallback, hybrid targets
+    (e.g. Qwen3.8 GDN) leave draft groups unannotated and the coordinator
+    flags every group — including Mamba — which breaks align-mode prefix
+    caching on long prompts. The annotator separately checks that the groups
+    partition the layers exactly.
     """
     spec_config = vllm_config.speculative_config
     if spec_config is None or not spec_config.use_eagle():
         return False
-    if spec_config.method == "mtp":
+    if spec_config.method in ("mtp", "dflash", "dspark"):
         return True
     model_config = vllm_config.model_config
     return model_config is not None and model_config.hf_config.model_type in (
@@ -2210,6 +2214,13 @@ def _annotate_eagle_groups(
     for group in kv_cache_groups:
         if last_layer in group.layer_names:
             group.is_eagle_group = True
+            logger.info(
+                "Annotated trailing draft KV cache group via positional "
+                "fallback (method=%s, last_layer=%s, group_layers=%s).",
+                getattr(spec_config, "method", None),
+                last_layer,
+                group.layer_names,
+            )
             break
 
 

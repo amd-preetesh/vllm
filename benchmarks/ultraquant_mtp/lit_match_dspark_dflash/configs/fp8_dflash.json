@@ -1,0 +1,7 @@
+{
+  "method": "dflash",
+  "model": "/workspace/pretrained_models/z-lab/Qwen3.8-27B-DFlash2",
+  "num_speculative_tokens": 7,
+  "attention_backend": "TRITON_ATTN",
+  "kv_cache_dtype": "fp8"
+}

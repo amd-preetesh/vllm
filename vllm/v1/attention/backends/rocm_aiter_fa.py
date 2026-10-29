@@ -455,6 +455,24 @@ class AiterFlashAttentionMetadataBuilder(
 ):
     _cudagraph_support = AttentionCGSupport.UNIFORM_BATCH
 
+    @classmethod
+    def get_cudagraph_support(  # type: ignore[override]
+        cls,
+        vllm_config: VllmConfig,
+        kv_cache_spec,
+    ) -> AttentionCGSupport:
+        # Adaptive verification captures varlen decode graphs. Aiter FA already
+        # builds from device query_start_loc inside a fixed (num_spec+1) window,
+        # so one FULL graph can replay any 1..k+1 mix (same pattern as GDN /
+        # ULTRAQUANT_SPEC_COMPAT for PR #53929 adaptive enablement).
+        speculative_config = vllm_config.speculative_config
+        if (
+            speculative_config is not None
+            and speculative_config.enable_adaptive_verification
+        ):
+            return AttentionCGSupport.ALWAYS
+        return cls._cudagraph_support
+
     def __init__(
         self,
         kv_cache_spec: AttentionSpec,

@@ -343,6 +343,31 @@ class AdaptiveVerificationManager:
             for req_id, num_tokens in zip(req_ids, num_non_draft_tokens, strict=True)
         }
         draft_budget = int(np.argmax(num_tokens_to_estimated_accepted_tokens / costs))
+        mean_conf = float(np.mean(stale_confidences)) if stale_confidences.size else 1.0
+        # Degenerate confidence (uncalibrated / unloaded head → near-zero after the
+        # first record_confidences) makes every survival score ≈ 0, so argmax picks
+        # draft_budget=0. We still pay the full draft forward then verify nothing —
+        # AgentX shows ~0% accept. Fall back to the scheduled draft count.
+        if max_draft_budget > 0 and mean_conf < 0.05 and draft_budget < max_draft_budget:
+            logger.warning_once(
+                "Adaptive verification: mean confidence %.4g is degenerate; "
+                "keeping scheduled draft budget %s instead of argmax=%s "
+                "(survival≈0 would verify zero drafts).",
+                mean_conf,
+                max_draft_budget,
+                draft_budget,
+            )
+            draft_budget = max_draft_budget
+        elif draft_budget == 0 and max_draft_budget > 0:
+            logger.warning_once(
+                "Adaptive verification draft_budget=0/%s mean_conf=%.4g "
+                "mean_survival=%.4g costs0=%.4g costs_end=%.4g",
+                max_draft_budget,
+                mean_conf,
+                float(np.mean(survival_probability[valid])) if valid.any() else 0.0,
+                float(costs[0]) if len(costs) else float("nan"),
+                float(costs[-1]) if len(costs) else float("nan"),
+            )
         self._batch_budget = (
             num_drafts_per_req,
             num_non_draft_tokens_per_req,

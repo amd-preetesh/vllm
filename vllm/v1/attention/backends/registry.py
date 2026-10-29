@@ -60,6 +60,24 @@ class AttentionBackendEnum(Enum, metaclass=_AttentionBackendEnumMeta):
     ROCM_AITER_FA = (
         "vllm.v1.attention.backends.rocm_aiter_fa.AiterFlashAttentionBackend"
     )
+    # Experiment: draft FA that also accepts LBNHC so UltraQuant∩draft is non-empty.
+    # FP8 DFlash/DSpark keeps ROCM_AITER_FA.
+    ROCM_AITER_FA_UQ_COMPAT = (
+        "vllm.v1.attention.backends.rocm_aiter_fa_uq_compat."
+        "AiterFlashAttentionUQCompatBackend"
+    )
+    # Experiment: dense (lcm-padded 784) draft pages → higher UQ pool util / LCM 3136.
+    # Opt-in via speculative_config only; default remains ROCM_AITER_FA_UQ_COMPAT.
+    ROCM_AITER_FA_UQ_DENSE = (
+        "vllm.v1.attention.backends.rocm_aiter_fa_uq_dense."
+        "AiterFlashAttentionUQDenseBackend"
+    )
+    # Experiment (P0-3): DFlash SWA window page table — avoids null-block draft reads.
+    # Opt-in via speculative_config or VLLM_DFLASH_DRAFT_ATTN_EXPERIMENT=win_table.
+    ROCM_AITER_FA_DFLASH_SWA = (
+        "vllm.v1.attention.backends.rocm_aiter_fa_dflash_swa."
+        "AiterFlashAttentionDFlashSwaBackend"
+    )
     ROCM_AITER_MLA_SPARSE = (
         "vllm.v1.attention.backends.mla.rocm_aiter_mla_sparse.ROCMAiterMLASparseBackend"
     )
@@ -150,6 +168,19 @@ class AttentionBackendEnum(Enum, metaclass=_AttentionBackendEnumMeta):
     AMX_MLA = "vllm.v1.attention.backends.mla.amx_mla.AMXMLABackend"
     TURBOQUANT = "vllm.v1.attention.backends.turboquant_attn.TurboQuantAttentionBackend"
     ULTRAQUANT = "vllm.v1.attention.backends.ultraquant_attn.UltraQuantAttentionBackend"
+    # DFlash2 P3 experiment backend: UltraQuant + dflash_flydsl kernel path.
+    # Default ULTRAQUANT still selects the shipping PDV kernel.
+    ULTRAQUANT_DFLASH = (
+        "vllm.v1.attention.backends.ultraquant_dflash_attn."
+        "UltraQuantDFlashAttentionBackend"
+    )
+    # Experiment: UQ target that accepts hybrid ~3k manager blocks without
+    # 16-token virtual splitting (for DFlash/DSpark UQ + FA_UQ_COMPAT draft).
+    # Shipping ULTRAQUANT unchanged.
+    ULTRAQUANT_SPEC_COMPAT = (
+        "vllm.v1.attention.backends.ultraquant_spec_compat_attn."
+        "UltraQuantSpecCompatAttentionBackend"
+    )
     # Placeholder for third-party/custom backends - must be registered before use
     # set to None to avoid alias with other backend, whose value is an empty string
     CUSTOM = None

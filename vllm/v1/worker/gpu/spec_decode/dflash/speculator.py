@@ -467,6 +467,14 @@ class DFlashSpeculator(DraftModelSpeculator):
         # so the real token count is num_query_tokens.
         self._prepare_eplb_forward(num_query_tokens)
 
+        # H1 null-block diagnostics (default off): read-only finite counter
+        # and/or zero block 0 before the draft forward.
+        from vllm.v1.worker.gpu.spec_decode.dflash.null_block_debug import (
+            maybe_null_block_hooks,
+        )
+
+        maybe_null_block_hooks(self.model, max_seq_len=int(self.draft_max_seq_len))
+
         if batch_desc.cg_mode == CUDAGraphMode.FULL:
             assert self.query_cudagraph_manager is not None
             self.query_cudagraph_manager.run_fullgraph(batch_desc)

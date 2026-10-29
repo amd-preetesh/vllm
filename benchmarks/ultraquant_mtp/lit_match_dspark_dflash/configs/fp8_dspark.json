@@ -1,0 +1,8 @@
+{
+  "method": "dspark",
+  "model": "/workspace/pretrained_models/RadixArk/Qwen3.8-27B-DSpark",
+  "num_speculative_tokens": 7,
+  "draft_sample_method": "probabilistic",
+  "attention_backend": "TRITON_ATTN",
+  "kv_cache_dtype": "fp8"
+}

@@ -1,0 +1,152 @@
+{
+  "suite": "agentx_dspark_dflash_recovery",
+  "note": "Phase 2 AgentX recovery: block_size=64, mnbt=8192, LCM-aligned retention, FP8 draft kv8, DFlash SWA win_table, adaptive A/B",
+  "model": "/huggingface/pretrained_models/Qwen/Qwen3.8-27B",
+  "tp": 1,
+  "concs": [8, 16, 24, 32],
+  "seed": 42,
+  "duration_s": 300,
+  "max_model_len": 262144,
+  "mnbt": 8192,
+  "block_size": 64,
+  "util": 0.70,
+  "sampling": {
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "top_k": 20,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "repetition_penalty": 1.0,
+    "reasoning_effort": "xhigh",
+    "enable_thinking": true,
+    "preserve_thinking": true
+  },
+  "drafts": {
+    "dspark": "/workspace/pretrained_models/RadixArk/Qwen3.8-27B-DSpark",
+    "dflash": "/workspace/pretrained_models/z-lab/Qwen3.8-27B-DFlash2"
+  },
+  "pass_gates": {
+    "vs_nospec_c32": 1.15,
+    "prefix_hit_min": 0.70,
+    "accept_min": 2.5
+  },
+  "arms": [
+    {
+      "id": "fp8_dspark_geom64",
+      "lane": "fp8",
+      "label": "FP8 DSpark geom64+mnbt8k",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "retention": 49920,
+      "spec": {
+        "method": "dspark",
+        "model_key": "dspark",
+        "num_speculative_tokens": 7,
+        "draft_sample_method": "probabilistic",
+        "attention_backend": "TRITON_ATTN",
+        "kv_cache_dtype": "fp8"
+      },
+      "env": {}
+    },
+    {
+      "id": "fp8_dflash_geom64_swa",
+      "lane": "fp8",
+      "label": "FP8 DFlash geom64+SWA win_table",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "retention": 49920,
+      "spec": {
+        "method": "dflash",
+        "model_key": "dflash",
+        "num_speculative_tokens": 7,
+        "attention_backend": "ROCM_AITER_FA_DFLASH_SWA",
+        "kv_cache_dtype": "fp8"
+      },
+      "env": {
+        "VLLM_DFLASH_DRAFT_ATTN_EXPERIMENT": "win_table"
+      }
+    },
+    {
+      "id": "fp8_dspark_adaptive_geom64",
+      "lane": "fp8",
+      "label": "FP8 DSpark adaptive geom64",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "retention": 49920,
+      "spec": {
+        "method": "dspark",
+        "model_key": "dspark",
+        "num_speculative_tokens": 7,
+        "draft_sample_method": "probabilistic",
+        "attention_backend": "TRITON_ATTN",
+        "kv_cache_dtype": "fp8",
+        "enable_adaptive_verification": true
+      },
+      "env": {}
+    },
+    {
+      "id": "uq_dspark_geom64",
+      "lane": "uq",
+      "label": "UQ DSpark geom64+mnbt8k",
+      "attn": "ULTRAQUANT_SPEC_COMPAT",
+      "kv": "ultraquant_4bit",
+      "retention": 50176,
+      "spec": {
+        "method": "dspark",
+        "model_key": "dspark",
+        "num_speculative_tokens": 7,
+        "draft_sample_method": "probabilistic",
+        "attention_backend": "ROCM_AITER_FA_UQ_DENSE",
+        "kv_cache_dtype": "auto"
+      },
+      "env": {
+        "VLLM_ULTRAQUANT_FUSED_MTP": "1",
+        "VLLM_ULTRAQUANT_PDV_VERIFY": "1",
+        "VLLM_ULTRAQUANT_PAIR_VERIFY": "0"
+      }
+    },
+    {
+      "id": "uq_dflash_geom64_swa",
+      "lane": "uq",
+      "label": "UQ DFlash geom64+SWA win_table",
+      "attn": "ULTRAQUANT_SPEC_COMPAT",
+      "kv": "ultraquant_4bit",
+      "retention": 50176,
+      "spec": {
+        "method": "dflash",
+        "model_key": "dflash",
+        "num_speculative_tokens": 7,
+        "attention_backend": "ROCM_AITER_FA_DFLASH_SWA",
+        "kv_cache_dtype": "auto"
+      },
+      "env": {
+        "VLLM_ULTRAQUANT_FUSED_MTP": "1",
+        "VLLM_ULTRAQUANT_PDV_VERIFY": "1",
+        "VLLM_ULTRAQUANT_PAIR_VERIFY": "0",
+        "VLLM_DFLASH_DRAFT_ATTN_EXPERIMENT": "win_table"
+      }
+    },
+    {
+      "id": "uq_dspark_adaptive_geom64",
+      "lane": "uq",
+      "label": "UQ DSpark adaptive geom64",
+      "attn": "ULTRAQUANT_SPEC_COMPAT",
+      "kv": "ultraquant_4bit",
+      "retention": 50176,
+      "spec": {
+        "method": "dspark",
+        "model_key": "dspark",
+        "num_speculative_tokens": 7,
+        "draft_sample_method": "probabilistic",
+        "attention_backend": "ROCM_AITER_FA_UQ_DENSE",
+        "kv_cache_dtype": "auto",
+        "enable_adaptive_verification": true
+      },
+      "env": {
+        "VLLM_ULTRAQUANT_FUSED_MTP": "1",
+        "VLLM_ULTRAQUANT_PDV_VERIFY": "1",
+        "VLLM_ULTRAQUANT_PAIR_VERIFY": "0"
+      }
+    }
+  ]
+}

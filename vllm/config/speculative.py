@@ -631,6 +631,10 @@ class SpeculativeConfig:
             "dspark",
         )
         factors.append(uses_aux_hidden_states)
+        # Adaptive mode changes the captured graphs and the draft function.
+        # Missing this caused adaptive boots to reuse non-adaptive compile
+        # caches (vLLM PR #53929 reviewer fix 3462da7907).
+        factors.append(self.enable_adaptive_verification)
 
         if self.draft_model_config is not None:
             factors.append(self.draft_model_config.compute_hash())
