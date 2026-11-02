@@ -15,16 +15,30 @@
 set -euo pipefail
 
 # Tool locations; set for your machine.
-EVAL_HARNESS=/shareddata/adrana/workspace/eval-harness
-AITER_SRC=/shareddata/adrana/workspace/aiter-v0.1.21.post2
+EVAL_HARNESS=/workspace/eval-harness
+AITER_SRC=/workspace/aiter
+VENV=/workspace/.venv-uq
 VLLM_SRC=$(cd "$(dirname "$0")/../.." && pwd)
 
 MODEL=$1 KV_CACHE_DTYPE=$2 NUM_SPEC_TOKENS=$3 OUT=$4
 shift 4
-PORT=8061
+PORT="${GPQA_PORT:-8061}"
 SEED=7
-MAX_MODEL_LEN=163840
+# Qwen3.8 uses its native context. Other models, including Qwen3.6, keep the
+# original script context.
+if [ "$(basename "$MODEL")" = "Qwen3.8-27B" ]; then
+  MAX_MODEL_LEN=262144
+  BENCH_CONFIG="$EVAL_HARNESS/configs/benchmarks/gpqa_diamond_qwen38_card.json"
+else
+  MAX_MODEL_LEN=163840
+  BENCH_CONFIG="$EVAL_HARNESS/configs/benchmarks/gpqa_diamond_card.json"
+fi
 
+export PATH="$VENV/bin:$PATH"
+if [ -n "${HIP_VISIBLE_DEVICES:-}" ]; then
+  export CUDA_VISIBLE_DEVICES="$HIP_VISIBLE_DEVICES"
+fi
+unset ROCR_VISIBLE_DEVICES
 export PYTHONNOUSERSITE=1 VLLM_ROCM_USE_AITER=1 HSA_NO_SCRATCH_RECLAIM=1
 export PYTHONPATH="$AITER_SRC:$VLLM_SRC"
 mkdir -p "$OUT"
@@ -61,7 +75,7 @@ done
 
 python "$EVAL_HARNESS/drivers/gpqa_native.py" \
   --port "$PORT" --model "$MODEL" --max_model_len "$MAX_MODEL_LEN" \
-  --bench_config "$EVAL_HARNESS/configs/benchmarks/gpqa_diamond_card.json" \
+  --bench_config "$BENCH_CONFIG" \
   --out_dir "$OUT" --seed "$SEED" > "$OUT/eval.log" 2>&1
 
 curl -s "http://127.0.0.1:$PORT/metrics" | grep -E '^vllm:spec_decode' > "$OUT/spec_metrics.txt" || true

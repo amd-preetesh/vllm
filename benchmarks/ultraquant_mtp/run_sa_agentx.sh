@@ -13,10 +13,11 @@
 set -euo pipefail
 
 # Tool locations; set for your machine.
-SA_DIR=/shareddata/adrana/workspace/SemiAnalysis
+SA_DIR=/workspace/SemiAnalysis
 INFERENCEX_DIR=$SA_DIR/InferenceX
 AIPERF=$SA_DIR/aiperf-venv/bin/aiperf
-AITER_SRC=/shareddata/adrana/workspace/aiter-v0.1.21.post2
+AITER_SRC=/workspace/aiter
+VENV=/workspace/.venv-uq
 VLLM_SRC=$(cd "$(dirname "$0")/../.." && pwd)
 
 MODEL=$1 KV_CACHE_DTYPE=$2 NUM_SPEC_TOKENS=$3 CONC=$4 OUT=$5
@@ -25,6 +26,11 @@ PORT=8040
 MAX_MODEL_LEN=262144
 DURATION=3600
 
+export PATH="$VENV/bin:$PATH"
+if [ -n "${HIP_VISIBLE_DEVICES:-}" ]; then
+  export CUDA_VISIBLE_DEVICES="$HIP_VISIBLE_DEVICES"
+fi
+unset ROCR_VISIBLE_DEVICES
 export PYTHONNOUSERSITE=1 VLLM_ROCM_USE_AITER=1 HSA_NO_SCRATCH_RECLAIM=1
 export PYTHONPATH="$AITER_SRC:$VLLM_SRC"
 export HF_HUB_CACHE=${HF_HUB_CACHE:-$SA_DIR/.hf-cache}
@@ -37,6 +43,13 @@ OUT=$(mkdir -p "$OUT" && cd "$OUT" && pwd)
 SPEC_ARGS=()
 if [ "$NUM_SPEC_TOKENS" != "0" ]; then
   SPEC_ARGS=(--speculative-config "{\"method\":\"mtp\",\"num_speculative_tokens\":$NUM_SPEC_TOKENS}")
+fi
+
+# Qwen3.6 AgentX keeps the trace request sampling. Qwen3.8 applies the
+# Hugging Face thinking-mode card.
+EXTRA_ARGS=()
+if [ "$(basename "$MODEL")" = "Qwen3.8-27B" ]; then
+  EXTRA_ARGS=(--extra-inputs '{"temperature":1.0,"top_p":0.95,"top_k":20,"min_p":0.0,"presence_penalty":0.0,"repetition_penalty":1.0,"reasoning_effort":"xhigh","chat_template_kwargs":{"enable_thinking":true,"preserve_thinking":true}}')
 fi
 
 vllm serve "$MODEL" --port "$PORT" --tensor-parallel-size 2 \
@@ -70,13 +83,13 @@ done
   --model "$MODEL" --concurrency "$CONC" --benchmark-duration "$DURATION" \
   --stats-interval 30 --random-seed 42 --failed-request-threshold 0.10 \
   --trajectory-start-min-ratio 0.25 --trajectory-start-max-ratio 0.75 \
-  --warmup-requests-per-lane 10 --trace-idle-gap-cap-seconds 300 \
   --warmup-grace-period 1800 \
   --use-server-token-count --no-gpu-telemetry --tokenizer-trust-remote-code \
   --max-context-length "$MAX_MODEL_LEN" \
   --num-dataset-entries 393 --slice-duration 1.0 \
   --output-artifact-dir "$OUT/aiperf_artifacts" \
-  --public-dataset semianalysis_cc_traces_weka_062126_256k) > "$OUT/benchmark.log" 2>&1
+  --public-dataset semianalysis_cc_traces_weka_062126_256k \
+  "${EXTRA_ARGS[@]}") > "$OUT/benchmark.log" 2>&1
 
 curl -s "http://localhost:$PORT/metrics" \
   | grep -E '^vllm:(spec_decode|prefix_cache|num_preemptions)' > "$OUT/metrics_end.txt" || true

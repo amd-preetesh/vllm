@@ -128,7 +128,14 @@ class BlockTables:
                     f"Block table write for request {req_index}, group {i} exceeds "
                     f"row capacity ({end} > {row_capacity})"
                 )
+            old_end = int(self.num_blocks.np[i, req_index]) if overwrite else end
             self.block_tables[i].stage_write(req_index, start, block_ids)
+            # On overwrite of a shorter request, clear stale trailing block ids
+            # left by a previous occupant of this req slot.
+            if overwrite and old_end > end:
+                self.block_tables[i].stage_write(
+                    req_index, end, [0] * (old_end - end)
+                )
             self.num_blocks.np[i, req_index] = end
 
     def apply_staged_writes(self) -> None:
@@ -270,6 +277,14 @@ def _gather_block_tables_kernel(
         offset = i + tl.arange(0, BLOCK_SIZE)
         block_ids = tl.load(src_row_ptr + offset, mask=offset < num_blocks)
         tl.store(dst_row_ptr + offset, block_ids, mask=offset < num_blocks)
+
+    # Zero the remainder. Persistent input_block_tables and append-only
+    # src rows retain a prior longer request's block ids past num_blocks;
+    # mamba/GDN align precopy indexes by state_idx and would otherwise load
+    # stale (freed/reused) physical pages → GPU memfault on prefix-hit reuse.
+    for i in tl.range(num_blocks, max_num_blocks, BLOCK_SIZE):
+        offset = i + tl.arange(0, BLOCK_SIZE)
+        tl.store(dst_row_ptr + offset, 0, mask=offset < max_num_blocks)
 
 
 @triton.jit

@@ -1,0 +1,26 @@
+# id mtp conc seconds pair waves kv_aux tok_per_part max_parts gate
+# gate "-" means the cell is ready. Any other token is a file under
+# logs/weekend-gates/ that must exist before the cell runs.
+pair_m5_c32	5	32	300	1	2	0	192	0	-
+pair_m3_c32	3	32	300	1	2	0	192	0	-
+pair_m2_c32	2	32	300	1	2	0	192	0	-
+pair_m5_c16	5	16	300	1	2	0	192	0	-
+pair_m3_c16	3	16	300	1	2	0	192	0	-
+pair_m2_c16	2	16	300	1	2	0	192	0	-
+pair_m5_c8	5	8	300	1	2	0	192	0	-
+pair_m3_c8	3	8	300	1	2	0	192	0	-
+pair_m2_c8	2	8	300	1	2	0	192	0	-
+pair_nt_m5_c32	5	32	300	1	2	2	192	0	-
+pair_nt_m5_c16	5	16	300	1	2	2	192	0	-
+pair_nt_m5_c8	5	8	300	1	2	2	192	0	-
+pair_p96_m5_c32	5	32	300	1	2	0	96	0	-
+pair_p384_m5_c32	5	32	300	1	2	0	384	0	-
+pair_max128_m5_c32	5	32	300	1	2	0	192	128	-
+pair_max512_m5_c32	5	32	300	1	2	0	192	512	-
+rowpack_m5_c32	5	32	300	1	2	0	192	0	rowpack.ok
+rowpack_m3_c32	3	32	300	1	2	0	192	0	rowpack.ok
+rowpack_m2_c32	2	32	300	1	2	0	192	0	rowpack.ok
+rowpack_m5_c16	5	16	300	1	2	0	192	0	rowpack.ok
+rowpack_m5_c8	5	8	300	1	2	0	192	0	rowpack.ok
+producer3_m5_c32	5	32	300	1	3	0	192	0	producer.ok
+producer4_m5_c32	5	32	300	1	4	0	192	0	producer.ok

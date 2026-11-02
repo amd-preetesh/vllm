@@ -1,0 +1,7 @@
+# id mtp conc seconds pair waves kv_aux tok_per_part max_parts gate
+rowpack_m5_c32	5	32	300	0	2	0	192	0	-
+rowpack_m3_c32	3	32	300	0	2	0	192	0	-
+rowpack_m2_c32	2	32	300	0	2	0	192	0	-
+rowpack_m5_c16	5	16	300	0	2	0	192	0	-
+rowpack_m5_c8	5	8	300	0	2	0	192	0	-
+rowpack_nt_m5_c32	5	32	300	0	2	2	192	0	-

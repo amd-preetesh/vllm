@@ -150,7 +150,16 @@ class KVCacheCoordinator(ABC):
             for i, kv_cache_group in enumerate(self.kv_cache_config.kv_cache_groups)
         )
         # Match Mamba checkpoints to Eagle's attention replay boundary.
-        if use_eagle:
+        # Only when an eagle group is full-attention (MTP/EAGLE-style shared
+        # replay). Draft-SWA-only eagle (DFlash) must leave Mamba checkpoints
+        # unshifted — dropping here desyncs GDN/align state under prefix hits.
+        if use_eagle and any(
+            isinstance(
+                self.kv_cache_config.kv_cache_groups[i].kv_cache_spec,
+                FullAttentionSpec,
+            )
+            for i in self.eagle_group_ids
+        ):
             for manager in self.single_type_managers:
                 if isinstance(manager, MambaManager):
                     manager.drop_eagle_checkpoint_block = True

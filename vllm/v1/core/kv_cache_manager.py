@@ -318,6 +318,12 @@ class KVCacheManager:
         )
 
         blocks = self.create_kv_cache_blocks(computed_blocks)
+        # E3 / P1-4: env-gated per-group hit logger (default off).
+        from vllm.v1.core.kv_hit_debug import log_computed_blocks_hit
+
+        log_computed_blocks_hit(
+            self, request, num_new_computed_tokens, shared_prefix_boundary
+        )
         return blocks, num_new_computed_tokens, shared_prefix_boundary
 
     def get_computed_blocks_for_connector(

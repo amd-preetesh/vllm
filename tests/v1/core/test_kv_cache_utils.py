@@ -4348,6 +4348,31 @@ def test_qwen3_5_mtp_draft_group_annotated_on_hybrid_path(caplog_vllm):
     assert "could be identified as the draft model's" not in caplog_vllm.text
 
 
+def test_qwen3_5_dflash_draft_group_annotated_on_hybrid_path(caplog_vllm):
+    # DFlash2 registers trailing SWA draft layers after the hybrid target.
+    # Same trailing-layer rule as MTP must annotate only the draft group so
+    # Mamba is not swept by the flag-all fallback (long+prefix memfault).
+    specs = _qwen3_5_hybrid_specs(with_mtp_layer=False)
+    specs["dflash.layers.0.self_attn.attn"] = new_sliding_window_spec(
+        block_size=16, sliding_window=2048
+    )
+    groups = get_kv_cache_groups(
+        _spec_decode_grouping_config(method="dflash", model_type="qwen3_5"),
+        specs,
+    )
+
+    flagged = [g for g in groups if g.is_eagle_group]
+    assert len(flagged) == 1
+    assert "dflash.layers.0.self_attn.attn" in flagged[0].layer_names
+    for group in groups:
+        if any(
+            isinstance(spec, MambaSpec)
+            for spec in iter_layer_specs(group.kv_cache_spec)
+        ):
+            assert not group.is_eagle_group
+    assert "could be identified as the draft model's" not in caplog_vllm.text
+
+
 @pytest.mark.parametrize("method", ["eagle", "eagle3", "dspark"])
 def test_non_mtp_eagle_hybrid_still_warns(caplog_vllm, method):
     # Other drafters are not covered by the trailing-layer rule, so an

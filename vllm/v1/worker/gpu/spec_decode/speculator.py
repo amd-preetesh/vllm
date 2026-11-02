@@ -162,7 +162,9 @@ class DraftModelSpeculator(BaseSpeculator):
         self.arange_np = np.arange(self.max_num_reqs + 1, dtype=np.int32)
         self.draft_is_prefilling = torch.zeros(self.max_num_reqs, dtype=torch.bool)
 
-        self.draft_token_confidence_probs = torch.empty_like(
+        # Default to 1.0 so adaptive budget ranking does not see uninitialized
+        # zeros before the first confidence-head (or estimator) write.
+        self.draft_token_confidence_probs = torch.ones_like(
             self.draft_tokens, dtype=torch.float32
         )
         self.enable_adaptive_verification = (

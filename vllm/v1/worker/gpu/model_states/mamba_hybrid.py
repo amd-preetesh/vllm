@@ -113,10 +113,23 @@ class MambaHybridModelState(DefaultModelState):
         # Must reset the speculative acceptance count in this idx which could be stale.
         self.num_accepted_tokens_gpu[req_index].fill_(1)
         if self._align_mode:
-            # Seed the running state block from the resumed/prefilled position.
-            self._mamba_state_idx_gpu[req_index].fill_(
-                (new_req_data.num_computed_tokens - 1) // self.cache_config.block_size
+            # Seed from the resumed/prefilled position using the mamba page
+            # size (not the attention block_size). Prefill-hit paths force
+            # align with mamba_block_size that can differ from cache block_size;
+            # using the wrong divisor OOBs the GPU block-table column.
+            mamba_block_size = (
+                self._mamba_spec.block_size
+                if self._mamba_spec is not None
+                else (
+                    self.cache_config.mamba_block_size or self.cache_config.block_size
+                )
             )
+            self._mamba_state_idx_gpu[req_index].fill_(
+                (new_req_data.num_computed_tokens - 1) // mamba_block_size
+            )
+            # Clear stale pre-copy src from a prior occupant of this slot.
+            self._mamba_src_col_gpu[req_index].fill_(-1)
+            self._mamba_src_off_gpu[req_index].fill_(0)
 
     def _get_mamba_group_info(
         self, kv_cache_config: KVCacheConfig

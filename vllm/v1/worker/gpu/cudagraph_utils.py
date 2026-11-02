@@ -99,6 +99,25 @@ class CreateForwardFn(Protocol):
     ) -> Callable[[CUDAGraphMode], None]: ...
 
 
+def varlen_descriptor_rungs(
+    num_tokens: int, max_query_len: int, max_num_reqs: int
+) -> list[tuple[int, int]]:
+    """(num_reqs, honest max_query_len) rungs for a varlen capture size.
+
+    Ported from vLLM PR #53929 reviewer fix 3462da7907: descriptors must claim
+    only the per-request window the capture dummy actually exercises.
+    """
+    return [
+        (r, max(1, min(max_query_len, num_tokens - r + 1)))
+        for r in sorted(
+            {
+                max(1, -(-num_tokens // max_query_len)),
+                min(num_tokens, max_num_reqs),
+            }
+        )
+    ]
+
+
 def _is_compatible(
     desc: BatchExecutionDescriptor,
     num_reqs: int,
@@ -297,16 +316,26 @@ class CudaGraphManager:
             capture_sizes, self.lora_capture_cases
         ):
             # Varlen decode graphs take any mix of 1..decode_query_len tokens per
-            # request, worst case 1 token per request (or max_num_reqs)
+            # request. Rungs claim only the window their capture dummy exercises
+            # (PR #53929 / 3462da7907); dishonest max_query_len=K with even-spread
+            # width-1 captures corrupts adaptive verify replay.
             if capture_varlen_decode and num_tokens <= max_decode_tokens:
-                desc = BatchExecutionDescriptor(
-                    cg_mode=decode_mode,
-                    num_tokens=num_tokens,
-                    num_reqs=min(num_tokens, self.max_num_reqs),
-                    max_query_len=self.decode_query_len,
-                    num_active_loras=num_active_loras,
+                _maxq = min(
+                    self.decode_query_len,
+                    max(decode_query_lens, default=self.decode_query_len),
                 )
-                descs_by_mode[decode_mode].append(desc)
+                for _r, _maxq_rung in varlen_descriptor_rungs(
+                    num_tokens, _maxq, self.max_num_reqs
+                ):
+                    desc = BatchExecutionDescriptor(
+                        cg_mode=decode_mode,
+                        num_tokens=num_tokens,
+                        num_reqs=_r,
+                        max_query_len=_maxq_rung,
+                        num_active_loras=num_active_loras,
+                    )
+                    if desc not in descs_by_mode[decode_mode]:
+                        descs_by_mode[decode_mode].append(desc)
             # Capture uniform decode specfifc graphs if required
             #  (i.e. separate decode routine)
             elif separate_decode_routine and decode_mode and not self.varlen_decode:
@@ -427,10 +456,24 @@ class CudaGraphManager:
                     mode == CUDAGraphMode.FULL
                     and self._max_full_descs_to_capture is not None
                 ):
-                    # Profiling only: capture a sample of the largest FULL
-                    # graphs; the total cost is extrapolated from their
-                    # per-graph memory deltas.
-                    descs = descs[: self._max_full_descs_to_capture]
+                    # Profiling only: sample the N largest *token counts*, but
+                    # keep every ladder rung at those sizes. Varlen adaptive
+                    # capture emits multiple FULL descs per T (honest
+                    # max_query_len rungs); slicing descs[:N] can capture one
+                    # rung and leave its sibling unmatched when adaptive
+                    # batches_to_profile later dummy-runs that T
+                    # (PR #53929 / 3462da7 follow-up).
+                    n_sizes = self._max_full_descs_to_capture
+                    kept_tokens: list[int] = []
+                    limited: list[BatchExecutionDescriptor] = []
+                    for d in descs:  # already sorted largest-num_tokens first
+                        if d.num_tokens not in kept_tokens:
+                            if len(kept_tokens) >= n_sizes:
+                                break
+                            kept_tokens.append(d.num_tokens)
+                        if d.num_tokens in kept_tokens:
+                            limited.append(d)
+                    descs = limited
                 if is_global_first_rank():
                     descs = tqdm(descs, desc=f"{progress_bar_desc} ({mode.name})")
                 for desc in descs:
