@@ -1,0 +1,213 @@
+{
+  "suite": "agentx_baseline_qwen38",
+  "model": "/huggingface/pretrained_models/Qwen/Qwen3.8-27B",
+  "tp": 1,
+  "concs": [8, 16, 24, 32, 36],
+  "seed": 42,
+  "duration_s": 300,
+  "max_model_len": 262144,
+  "mnbt": 2048,
+  "block_size": 64,
+  "sampling": {
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "top_k": 20,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "repetition_penalty": 1.0,
+    "reasoning_effort": "xhigh",
+    "enable_thinking": true,
+    "preserve_thinking": true,
+    "note": "HF Qwen3.8-27B thinking-mode card"
+  },
+  "drafts": {
+    "dspark": "/workspace/pretrained_models/RadixArk/Qwen3.8-27B-DSpark",
+    "dflash": "/workspace/pretrained_models/z-lab/Qwen3.8-27B-DFlash2"
+  },
+  "arms": [
+    {
+      "id": "fp8_nospec",
+      "lane": "fp8",
+      "label": "FP8 + no spec",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "retention": 0,
+      "spec": null,
+      "env": {},
+      "notes": "No ret — nospec scheduler_block_size ≠ DSpark/DFlash LCM"
+    },
+    {
+      "id": "uq_nospec",
+      "lane": "uq",
+      "label": "UQ + no spec",
+      "attn": "ROCM_AITER_UNIFIED_ATTN",
+      "kv": "ultraquant_4bit",
+      "retention": 0,
+      "spec": null,
+      "env": {
+        "VLLM_ULTRAQUANT_FUSED_MTP": "0",
+        "VLLM_ULTRAQUANT_PDV_VERIFY": "0"
+      },
+      "notes": "No ret — nospec block size differs from dense-draft LCM"
+    },
+    {
+      "id": "fp8_mtp",
+      "lane": "fp8",
+      "label": "FP8 + MTP",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "retention": 0,
+      "spec": {"method": "mtp", "num_speculative_tokens": 5},
+      "env": {},
+      "notes": "No ret until MTP LCM confirmed"
+    },
+    {
+      "id": "uq_mtp_prod",
+      "lane": "uq",
+      "label": "UQ + MTP (prod FlyDSL)",
+      "attn": "ROCM_AITER_UNIFIED_ATTN",
+      "kv": "ultraquant_4bit",
+      "retention": 0,
+      "spec": {"method": "mtp", "num_speculative_tokens": 5},
+      "env": {
+        "VLLM_ULTRAQUANT_FUSED_MTP": "1",
+        "VLLM_ULTRAQUANT_PDV_VERIFY": "0",
+        "VLLM_ULTRAQUANT_PAIR_VERIFY": "0",
+        "VLLM_ULTRAQUANT_SHARED_KV": "0",
+        "VLLM_ULTRAQUANT_V3": "0"
+      },
+      "notes": "Base prod FlyDSL — PDV off; no ret until MTP LCM confirmed"
+    },
+    {
+      "id": "uq_mtp_pdv",
+      "lane": "uq",
+      "label": "UQ* + MTP (PDV1.1 FlyDSL)",
+      "attn": "ROCM_AITER_UNIFIED_ATTN",
+      "kv": "ultraquant_4bit",
+      "retention": 0,
+      "spec": {"method": "mtp", "num_speculative_tokens": 5},
+      "env": {
+        "VLLM_ULTRAQUANT_FUSED_MTP": "1",
+        "VLLM_ULTRAQUANT_PDV_VERIFY": "1",
+        "VLLM_ULTRAQUANT_PAIR_VERIFY": "0",
+        "VLLM_ULTRAQUANT_SHARED_KV": "0",
+        "VLLM_ULTRAQUANT_V3": "0"
+      },
+      "notes": "PDV1.1 shipping FlyDSL verify — PDV_EXPERIMENT unset"
+    },
+    {
+      "id": "fp8_dflash",
+      "lane": "fp8",
+      "label": "FP8 + DFlash2",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "retention": 49920,
+      "spec": {
+        "method": "dflash",
+        "model_key": "dflash",
+        "num_speculative_tokens": 7,
+        "attention_backend": "TRITON_ATTN",
+        "kv_cache_dtype": "fp8"
+      },
+      "env": {}
+    },
+    {
+      "id": "uq_dflash",
+      "lane": "uq",
+      "label": "UQ + DFlash2",
+      "attn": "ULTRAQUANT_SPEC_COMPAT",
+      "kv": "ultraquant_4bit",
+      "retention": 50176,
+      "spec": {
+        "method": "dflash",
+        "model_key": "dflash",
+        "num_speculative_tokens": 7,
+        "attention_backend": "ROCM_AITER_FA_DFLASH_SWA",
+        "kv_cache_dtype": "auto"
+      },
+      "env": {
+        "VLLM_ULTRAQUANT_FUSED_MTP": "1",
+        "VLLM_ULTRAQUANT_PDV_VERIFY": "1",
+        "VLLM_ULTRAQUANT_PAIR_VERIFY": "0"
+      }
+    },
+    {
+      "id": "fp8_dspark",
+      "lane": "fp8",
+      "label": "FP8 + DSpark",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "retention": 49920,
+      "spec": {
+        "method": "dspark",
+        "model_key": "dspark",
+        "num_speculative_tokens": 7,
+        "draft_sample_method": "probabilistic",
+        "attention_backend": "TRITON_ATTN",
+        "kv_cache_dtype": "fp8"
+      },
+      "env": {}
+    },
+    {
+      "id": "uq_dspark",
+      "lane": "uq",
+      "label": "UQ + DSpark",
+      "attn": "ULTRAQUANT_SPEC_COMPAT",
+      "kv": "ultraquant_4bit",
+      "retention": 50176,
+      "spec": {
+        "method": "dspark",
+        "model_key": "dspark",
+        "num_speculative_tokens": 7,
+        "draft_sample_method": "probabilistic",
+        "attention_backend": "ROCM_AITER_FA_UQ_DENSE",
+        "kv_cache_dtype": "auto"
+      },
+      "env": {
+        "VLLM_ULTRAQUANT_FUSED_MTP": "1",
+        "VLLM_ULTRAQUANT_PDV_VERIFY": "1",
+        "VLLM_ULTRAQUANT_PAIR_VERIFY": "0"
+      }
+    },
+    {
+      "id": "fp8_dspark_adaptive",
+      "lane": "fp8",
+      "label": "FP8 + DSpark adaptive",
+      "attn": "ROCM_AITER_FA",
+      "kv": "fp8",
+      "retention": 49920,
+      "spec": {
+        "method": "dspark",
+        "model_key": "dspark",
+        "num_speculative_tokens": 7,
+        "draft_sample_method": "probabilistic",
+        "attention_backend": "TRITON_ATTN",
+        "kv_cache_dtype": "fp8",
+        "enable_adaptive_verification": true
+      },
+      "env": {}
+    },
+    {
+      "id": "uq_dspark_adaptive",
+      "lane": "uq",
+      "label": "UQ + DSpark adaptive",
+      "attn": "ULTRAQUANT_SPEC_COMPAT",
+      "kv": "ultraquant_4bit",
+      "retention": 50176,
+      "spec": {
+        "method": "dspark",
+        "model_key": "dspark",
+        "num_speculative_tokens": 7,
+        "draft_sample_method": "probabilistic",
+        "attention_backend": "ROCM_AITER_FA_UQ_DENSE",
+        "kv_cache_dtype": "auto",
+        "enable_adaptive_verification": true
+      },
+      "env": {
+        "VLLM_ULTRAQUANT_FUSED_MTP": "1",
+        "VLLM_ULTRAQUANT_PDV_VERIFY": "1",
+        "VLLM_ULTRAQUANT_PAIR_VERIFY": "0"
+      }
+    }
+  ]
+}

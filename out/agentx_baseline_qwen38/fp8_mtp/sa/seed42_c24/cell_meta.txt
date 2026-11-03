@@ -1,0 +1,5 @@
+arm=fp8_mtp label=FP8 + MTP
+attn=ROCM_AITER_FA kv=fp8 retention=0
+spec={"method":"mtp","num_speculative_tokens":5,"max_model_len":262144}
+env=
+mode=full conc=24 util=0.7000

@@ -1,0 +1,851 @@
+{
+  "now": "2026-10-22 14:12 CDT",
+  "points": [
+    {
+      "conc": 8,
+      "mode": "DFlash FP8",
+      "kind": "base_fp8",
+      "toks": 12.9,
+      "itlAvg": 46.9,
+      "ttft": 17.52
+    },
+    {
+      "conc": 16,
+      "mode": "DFlash FP8",
+      "kind": "base_fp8",
+      "toks": 26.6,
+      "itlAvg": 77.4,
+      "ttft": 6.26
+    },
+    {
+      "conc": 20,
+      "mode": "DFlash FP8",
+      "kind": "base_fp8",
+      "toks": 44.6,
+      "itlAvg": 65.4,
+      "ttft": 14.02
+    },
+    {
+      "conc": 24,
+      "mode": "DFlash FP8",
+      "kind": "base_fp8",
+      "toks": 43.6,
+      "itlAvg": 78.6,
+      "ttft": 15.28
+    },
+    {
+      "conc": 30,
+      "mode": "DFlash FP8",
+      "kind": "base_fp8",
+      "toks": 12.0,
+      "itlAvg": 243.7,
+      "ttft": 11.93
+    },
+    {
+      "conc": 32,
+      "mode": "DFlash FP8",
+      "kind": "base_fp8",
+      "toks": 11.8,
+      "itlAvg": 339.1,
+      "ttft": 21.41
+    },
+    {
+      "conc": 8,
+      "mode": "DSpark FP8",
+      "kind": "base_fp8",
+      "toks": 33.0,
+      "itlAvg": 31.4,
+      "ttft": 12.21
+    },
+    {
+      "conc": 16,
+      "mode": "DSpark FP8",
+      "kind": "base_fp8",
+      "toks": 27.7,
+      "itlAvg": 48.1,
+      "ttft": 6.34
+    },
+    {
+      "conc": 20,
+      "mode": "DSpark FP8",
+      "kind": "base_fp8",
+      "toks": 36.5,
+      "itlAvg": 116.4,
+      "ttft": 17.15
+    },
+    {
+      "conc": 24,
+      "mode": "DSpark FP8",
+      "kind": "base_fp8",
+      "toks": 24.8,
+      "itlAvg": 135.9,
+      "ttft": 16.29
+    },
+    {
+      "conc": 30,
+      "mode": "DSpark FP8",
+      "kind": "base_fp8",
+      "toks": 18.2,
+      "itlAvg": 203.4,
+      "ttft": 21.09
+    },
+    {
+      "conc": 32,
+      "mode": "DSpark FP8",
+      "kind": "base_fp8",
+      "toks": 6.8,
+      "itlAvg": 428.6,
+      "ttft": 68.78
+    },
+    {
+      "conc": 8,
+      "mode": "DFlash UQ",
+      "kind": "base_uq",
+      "toks": 13.2,
+      "itlAvg": 49.9,
+      "ttft": 11.65
+    },
+    {
+      "conc": 16,
+      "mode": "DFlash UQ",
+      "kind": "base_uq",
+      "toks": 4.0,
+      "itlAvg": 396.6,
+      "ttft": 13.92
+    },
+    {
+      "conc": 20,
+      "mode": "DFlash UQ",
+      "kind": "base_uq",
+      "toks": 27.3,
+      "itlAvg": 115.6,
+      "ttft": 7.43
+    },
+    {
+      "conc": 24,
+      "mode": "DFlash UQ",
+      "kind": "base_uq",
+      "toks": 27.0,
+      "itlAvg": 131.1,
+      "ttft": 7.43
+    },
+    {
+      "conc": 30,
+      "mode": "DFlash UQ",
+      "kind": "base_uq",
+      "toks": 16.3,
+      "itlAvg": 210.8,
+      "ttft": 10.52
+    },
+    {
+      "conc": 32,
+      "mode": "DFlash UQ",
+      "kind": "base_uq",
+      "toks": 12.3,
+      "itlAvg": 297.9,
+      "ttft": 22.52
+    },
+    {
+      "conc": 8,
+      "mode": "DSpark UQ",
+      "kind": "base_uq",
+      "toks": 21.5,
+      "itlAvg": 22.1,
+      "ttft": 9.91
+    },
+    {
+      "conc": 16,
+      "mode": "DSpark UQ",
+      "kind": "base_uq",
+      "toks": 44.5,
+      "itlAvg": 24.8,
+      "ttft": 5.19
+    },
+    {
+      "conc": 20,
+      "mode": "DSpark UQ",
+      "kind": "base_uq",
+      "toks": 49.8,
+      "itlAvg": 46.3,
+      "ttft": 8.63
+    },
+    {
+      "conc": 24,
+      "mode": "DSpark UQ",
+      "kind": "base_uq",
+      "toks": 52.5,
+      "itlAvg": 61.5,
+      "ttft": 7.63
+    },
+    {
+      "conc": 30,
+      "mode": "DSpark UQ",
+      "kind": "base_uq",
+      "toks": 56.7,
+      "itlAvg": 107.4,
+      "ttft": 17.58
+    },
+    {
+      "conc": 32,
+      "mode": "DSpark UQ",
+      "kind": "base_uq",
+      "toks": 17.4,
+      "itlAvg": 231.2,
+      "ttft": 43.51
+    },
+    {
+      "conc": 8,
+      "mode": "DFlash FP8 P0-1",
+      "kind": "p01",
+      "toks": 12.9,
+      "itlAvg": 73.2,
+      "ttft": 27.8
+    },
+    {
+      "conc": 16,
+      "mode": "DFlash FP8 P0-1",
+      "kind": "p01",
+      "toks": 21.9,
+      "itlAvg": 162.3,
+      "ttft": 11.25
+    },
+    {
+      "conc": 20,
+      "mode": "DFlash FP8 P0-1",
+      "kind": "p01",
+      "toks": 10.6,
+      "itlAvg": 161.4,
+      "ttft": 22.2
+    },
+    {
+      "conc": 24,
+      "mode": "DFlash FP8 P0-1",
+      "kind": "p01",
+      "toks": 7.0,
+      "itlAvg": 211.1,
+      "ttft": 26.07
+    },
+    {
+      "conc": 30,
+      "mode": "DFlash FP8 P0-1",
+      "kind": "p01",
+      "toks": 7.3,
+      "itlAvg": 395.0,
+      "ttft": 40.55
+    },
+    {
+      "conc": 32,
+      "mode": "DFlash FP8 P0-1",
+      "kind": "p01",
+      "toks": 6.4,
+      "itlAvg": 566.7,
+      "ttft": 73.97
+    },
+    {
+      "conc": 8,
+      "mode": "DSpark FP8 P0-1",
+      "kind": "p01",
+      "toks": 69.3,
+      "itlAvg": 18.7,
+      "ttft": 6.23
+    },
+    {
+      "conc": 16,
+      "mode": "DSpark FP8 P0-1",
+      "kind": "p01",
+      "toks": 44.5,
+      "itlAvg": 24.5,
+      "ttft": 4.42
+    },
+    {
+      "conc": 20,
+      "mode": "DSpark FP8 P0-1",
+      "kind": "p01",
+      "toks": 52.5,
+      "itlAvg": 35.8,
+      "ttft": 8.73
+    },
+    {
+      "conc": 24,
+      "mode": "DSpark FP8 P0-1",
+      "kind": "p01",
+      "toks": 49.8,
+      "itlAvg": 48.8,
+      "ttft": 7.27
+    },
+    {
+      "conc": 30,
+      "mode": "DSpark FP8 P0-1",
+      "kind": "p01",
+      "toks": 45.8,
+      "itlAvg": 105.8,
+      "ttft": 13.14
+    },
+    {
+      "conc": 32,
+      "mode": "DSpark FP8 P0-1",
+      "kind": "p01",
+      "toks": 26.3,
+      "itlAvg": 185.7,
+      "ttft": 25.64
+    },
+    {
+      "conc": 32,
+      "mode": "DSpark UQ ret50k",
+      "kind": "fix",
+      "toks": 68.4,
+      "itlAvg": 81.8,
+      "ttft": 9.92
+    },
+    {
+      "conc": 32,
+      "mode": "DSpark UQ ret25k",
+      "kind": "fix",
+      "toks": 54.0,
+      "itlAvg": 77.8,
+      "ttft": 8.57
+    },
+    {
+      "conc": 32,
+      "mode": "DFlash UQ mnbt2048",
+      "kind": "fix",
+      "toks": 31.8,
+      "itlAvg": 136.8,
+      "ttft": 5.67
+    },
+    {
+      "conc": 32,
+      "mode": "DSpark UQ mnbt2048",
+      "kind": "fix",
+      "toks": 11.8,
+      "itlAvg": 136.9,
+      "ttft": 47.23
+    },
+    {
+      "conc": 32,
+      "mode": "DFlash UQ ret50k",
+      "kind": "fix",
+      "toks": 22.5,
+      "itlAvg": 168.1,
+      "ttft": 6.54
+    },
+    {
+      "conc": 32,
+      "mode": "DSpark UQ dense",
+      "kind": "fix",
+      "toks": 70.5,
+      "itlAvg": 92.0,
+      "ttft": 11.84
+    },
+    {
+      "conc": 32,
+      "mode": "DFlash UQ dense",
+      "kind": "fix",
+      "toks": 18.1,
+      "itlAvg": 223.9,
+      "ttft": 11.05
+    }
+  ],
+  "series": [
+    {
+      "name": "DFlash FP8",
+      "data": [
+        12.9,
+        26.6,
+        44.6,
+        43.6,
+        12.0,
+        11.8
+      ]
+    },
+    {
+      "name": "DSpark FP8",
+      "data": [
+        33.0,
+        27.7,
+        36.5,
+        24.8,
+        18.2,
+        6.8
+      ]
+    },
+    {
+      "name": "DFlash UQ",
+      "data": [
+        13.2,
+        4.0,
+        27.3,
+        27.0,
+        16.3,
+        12.3
+      ]
+    },
+    {
+      "name": "DSpark UQ",
+      "data": [
+        21.5,
+        44.5,
+        49.8,
+        52.5,
+        56.7,
+        17.4
+      ]
+    },
+    {
+      "name": "DFlash FP8 P0-1",
+      "data": [
+        12.9,
+        21.9,
+        10.6,
+        7.0,
+        7.3,
+        6.4
+      ]
+    },
+    {
+      "name": "DSpark FP8 P0-1",
+      "data": [
+        69.3,
+        44.5,
+        52.5,
+        49.8,
+        45.8,
+        26.3
+      ]
+    }
+  ],
+  "table": [
+    [
+      "DFlash FP8",
+      "8",
+      "12.9",
+      "46.9",
+      "17.52",
+      "190884",
+      "729"
+    ],
+    [
+      "DFlash FP8",
+      "16",
+      "26.6",
+      "77.4",
+      "6.26",
+      "128668",
+      "376"
+    ],
+    [
+      "DFlash FP8",
+      "20",
+      "44.6",
+      "65.4",
+      "14.02",
+      "130446",
+      "523"
+    ],
+    [
+      "DFlash FP8",
+      "24",
+      "43.6",
+      "78.6",
+      "15.28",
+      "131864",
+      "549"
+    ],
+    [
+      "DFlash FP8",
+      "30",
+      "12.0",
+      "243.7",
+      "11.93",
+      "128481",
+      "204"
+    ],
+    [
+      "DFlash FP8",
+      "32",
+      "11.8",
+      "339.1",
+      "21.41",
+      "142777",
+      "223"
+    ],
+    [
+      "DSpark FP8",
+      "8",
+      "33.0",
+      "31.4",
+      "12.21",
+      "190883",
+      "729"
+    ],
+    [
+      "DSpark FP8",
+      "16",
+      "27.7",
+      "48.1",
+      "6.34",
+      "126783",
+      "349"
+    ],
+    [
+      "DSpark FP8",
+      "20",
+      "36.5",
+      "116.4",
+      "17.15",
+      "134035",
+      "573"
+    ],
+    [
+      "DSpark FP8",
+      "24",
+      "24.8",
+      "135.9",
+      "16.29",
+      "132510",
+      "422"
+    ],
+    [
+      "DSpark FP8",
+      "30",
+      "18.2",
+      "203.4",
+      "21.09",
+      "126500",
+      "282"
+    ],
+    [
+      "DSpark FP8",
+      "32",
+      "6.8",
+      "428.6",
+      "68.78",
+      "131901",
+      "192"
+    ],
+    [
+      "DFlash UQ",
+      "8",
+      "13.2",
+      "49.9",
+      "11.65",
+      "190882",
+      "729"
+    ],
+    [
+      "DFlash UQ",
+      "16",
+      "4.0",
+      "396.6",
+      "13.92",
+      "115261",
+      "193"
+    ],
+    [
+      "DFlash UQ",
+      "20",
+      "27.3",
+      "115.6",
+      "7.43",
+      "134990",
+      "423"
+    ],
+    [
+      "DFlash UQ",
+      "24",
+      "27.0",
+      "131.1",
+      "7.43",
+      "136238",
+      "437"
+    ],
+    [
+      "DFlash UQ",
+      "30",
+      "16.3",
+      "210.8",
+      "10.52",
+      "129099",
+      "241"
+    ],
+    [
+      "DFlash UQ",
+      "32",
+      "12.3",
+      "297.9",
+      "22.52",
+      "143476",
+      "209"
+    ],
+    [
+      "DSpark UQ",
+      "8",
+      "21.5",
+      "22.1",
+      "9.91",
+      "185135",
+      "914"
+    ],
+    [
+      "DSpark UQ",
+      "16",
+      "44.5",
+      "24.8",
+      "5.19",
+      "115477",
+      "398"
+    ],
+    [
+      "DSpark UQ",
+      "20",
+      "49.8",
+      "46.3",
+      "8.63",
+      "128712",
+      "529"
+    ],
+    [
+      "DSpark UQ",
+      "24",
+      "52.5",
+      "61.5",
+      "7.63",
+      "127871",
+      "541"
+    ],
+    [
+      "DSpark UQ",
+      "30",
+      "56.7",
+      "107.4",
+      "17.58",
+      "136479",
+      "536"
+    ],
+    [
+      "DSpark UQ",
+      "32",
+      "17.4",
+      "231.2",
+      "43.51",
+      "137872",
+      "312"
+    ],
+    [
+      "DFlash FP8 P0-1",
+      "8",
+      "12.9",
+      "73.2",
+      "27.8",
+      "190882",
+      "729"
+    ],
+    [
+      "DFlash FP8 P0-1",
+      "16",
+      "21.9",
+      "162.3",
+      "11.25",
+      "129339",
+      "401"
+    ],
+    [
+      "DFlash FP8 P0-1",
+      "20",
+      "10.6",
+      "161.4",
+      "22.2",
+      "127688",
+      "277"
+    ],
+    [
+      "DFlash FP8 P0-1",
+      "24",
+      "7.0",
+      "211.1",
+      "26.07",
+      "130476",
+      "217"
+    ],
+    [
+      "DFlash FP8 P0-1",
+      "30",
+      "7.3",
+      "395.0",
+      "40.55",
+      "122122",
+      "192"
+    ],
+    [
+      "DFlash FP8 P0-1",
+      "32",
+      "6.4",
+      "566.7",
+      "73.97",
+      "147863",
+      "218"
+    ],
+    [
+      "DSpark FP8 P0-1",
+      "8",
+      "69.3",
+      "18.7",
+      "6.23",
+      "188270",
+      "2542"
+    ],
+    [
+      "DSpark FP8 P0-1",
+      "16",
+      "44.5",
+      "24.5",
+      "4.42",
+      "114030",
+      "409"
+    ],
+    [
+      "DSpark FP8 P0-1",
+      "20",
+      "52.5",
+      "35.8",
+      "8.73",
+      "127870",
+      "541"
+    ],
+    [
+      "DSpark FP8 P0-1",
+      "24",
+      "49.8",
+      "48.8",
+      "7.27",
+      "128711",
+      "529"
+    ],
+    [
+      "DSpark FP8 P0-1",
+      "30",
+      "45.8",
+      "105.8",
+      "13.14",
+      "138501",
+      "445"
+    ],
+    [
+      "DSpark FP8 P0-1",
+      "32",
+      "26.3",
+      "185.7",
+      "25.64",
+      "145645",
+      "331"
+    ],
+    [
+      "DSpark UQ ret50k",
+      "32",
+      "68.4",
+      "81.8",
+      "9.92",
+      "142800",
+      "465"
+    ],
+    [
+      "DSpark UQ ret25k",
+      "32",
+      "54.0",
+      "77.8",
+      "8.57",
+      "142943",
+      "375"
+    ],
+    [
+      "DFlash UQ mnbt2048",
+      "32",
+      "31.8",
+      "136.8",
+      "5.67",
+      "146694",
+      "328"
+    ],
+    [
+      "DSpark UQ mnbt2048",
+      "32",
+      "11.8",
+      "136.9",
+      "47.23",
+      "137476",
+      "267"
+    ],
+    [
+      "DFlash UQ ret50k",
+      "32",
+      "22.5",
+      "168.1",
+      "6.54",
+      "145697",
+      "256"
+    ],
+    [
+      "DSpark UQ dense",
+      "32",
+      "70.5",
+      "92.0",
+      "11.84",
+      "141135",
+      "499"
+    ],
+    [
+      "DFlash UQ dense",
+      "32",
+      "18.1",
+      "223.9",
+      "11.05",
+      "145321",
+      "237"
+    ]
+  ],
+  "tones": [
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "neutral",
+    "info",
+    "info",
+    "info",
+    "info",
+    "info",
+    "info",
+    "info",
+    "info",
+    "info",
+    "info",
+    "info",
+    "info",
+    "success",
+    "success",
+    "success",
+    "success",
+    "success",
+    "success",
+    "success"
+  ]
+}

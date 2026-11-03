@@ -1,0 +1,5 @@
+arm=uq_dflash label=UQ + DFlash2
+attn=ULTRAQUANT_SPEC_COMPAT kv=ultraquant_4bit retention=50176
+spec={"method":"dflash","num_speculative_tokens":7,"attention_backend":"ROCM_AITER_FA_DFLASH_SWA","kv_cache_dtype":"auto","model":"/workspace/pretrained_models/z-lab/Qwen3.8-27B-DFlash2","max_model_len":262144}
+env=VLLM_ULTRAQUANT_FUSED_MTP=1 VLLM_ULTRAQUANT_PDV_VERIFY=1 VLLM_ULTRAQUANT_PAIR_VERIFY=0
+mode=full conc=8 util=0.7000

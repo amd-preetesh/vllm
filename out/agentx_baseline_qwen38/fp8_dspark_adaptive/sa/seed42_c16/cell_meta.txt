@@ -1,0 +1,5 @@
+arm=fp8_dspark_adaptive label=FP8 + DSpark adaptive
+attn=ROCM_AITER_FA kv=fp8 retention=49920
+spec={"method":"dspark","num_speculative_tokens":7,"draft_sample_method":"probabilistic","attention_backend":"TRITON_ATTN","kv_cache_dtype":"fp8","enable_adaptive_verification":true,"model":"/workspace/pretrained_models/RadixArk/Qwen3.8-27B-DSpark","max_model_len":262144}
+env=
+mode=full conc=16 util=0.7000

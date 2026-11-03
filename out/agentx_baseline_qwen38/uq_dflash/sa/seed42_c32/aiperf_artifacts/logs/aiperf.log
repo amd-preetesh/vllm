@@ -1,0 +1,289 @@
+2026-10-29 00:59:53.455 - aiperf.cli_runner._single_run - INFO - Starting AIPerf System
+2026-10-29 00:59:53.459 - aiperf.common.scenario.validator - INFO - Scenario 'inferencex-agentx-mvp': setting profiling-phase timing_mode=agentic_replay.
+2026-10-29 00:59:53.459 - aiperf.common.scenario.validator - INFO - Scenario 'inferencex-agentx-mvp': injecting extra_inputs.ignore_eos=true (was absent).
+2026-10-29 00:59:53.459 - aiperf.common.scenario.validator - INFO - Scenario 'inferencex-agentx-mvp': auto-set --cache-bust=first_turn_prefix (was at default none).
+2026-10-29 00:59:53.459 - aiperf.common.scenario.validator - INFO - Scenario 'inferencex-agentx-mvp': auto-set --system-idle-gap-cap-seconds=10.0 (was unset).
+2026-10-29 00:59:53.460 - aiperf.common.scenario.validator - WARNING - Scenario violation (override active): --benchmark-duration: got 300.0, required '>=900' (scenario 'inferencex-agentx-mvp' requires duration >= 900s to reach steady state and trigger KV offloading)
+2026-10-29 00:59:53.633 - system_controller - INFO - GPU telemetry disabled via --no-gpu-telemetry
+2026-10-29 00:59:53.647 - OTelMetricsResultsProcessor_c6680dd0 - INFO - Telemetry streaming is disabled (set --otel-url and/or --mlflow-tracking-uri to enable)
+2026-10-29 00:59:53.647 - RecordExportJSONLWriter_50af0333 - INFO - Record metrics export enabled: /workspace/vllm/out/agentx_baseline_qwen38/uq_dflash/sa/seed42_c32/aiperf_artifacts/profile_export.jsonl
+2026-10-29 00:59:53.687 - _ServiceRegistry - INFO - Registered: Worker_Manager ('worker_manager') [0/0]
+2026-10-29 00:59:53.687 - system_controller - INFO - Registered Worker Manager (id: 'worker_manager')
+2026-10-29 00:59:53.687 - system_controller - INFO - Registered Worker Manager (id: 'worker_manager')
+2026-10-29 00:59:53.705 - server_metrics_manager - INFO - Server Metrics: Discovered 1 endpoints: ['http://127.0.0.1:8620/metrics']
+2026-10-29 00:59:53.815 - _ServiceRegistry - INFO - Registered: Server_Metrics_Manager ('server_metrics_manager') [0/0]
+2026-10-29 00:59:53.815 - system_controller - INFO - Registered Server Metrics Manager (id: 'server_metrics_manager')
+2026-10-29 00:59:53.815 - _ServiceRegistry - INFO - Registered: Dataset_Manager ('dataset_manager') [0/0]
+2026-10-29 00:59:53.815 - system_controller - INFO - Registered Dataset Manager (id: 'dataset_manager')
+2026-10-29 00:59:53.815 - _ServiceRegistry - INFO - Registered: Records_Manager ('records_manager') [0/0]
+2026-10-29 00:59:53.815 - system_controller - INFO - Registered Records Manager (id: 'records_manager')
+2026-10-29 00:59:53.816 - system_controller - INFO - Registered Dataset Manager (id: 'dataset_manager')
+2026-10-29 00:59:53.816 - _ServiceRegistry - INFO - Registered: Timing_Manager ('timing_manager') [0/0]
+2026-10-29 00:59:53.816 - system_controller - INFO - Registered Timing Manager (id: 'timing_manager')
+2026-10-29 00:59:53.816 - system_controller - INFO - Registered Server Metrics Manager (id: 'server_metrics_manager')
+2026-10-29 00:59:53.822 - _ServiceRegistry - INFO - Registered: Record_Processor ('record_processor_20580a7f') [0/0]
+2026-10-29 00:59:53.822 - system_controller - INFO - Registered Record Processor (id: 'record_processor_20580a7f')
+2026-10-29 00:59:53.822 - system_controller - INFO - Registered Record Processor (id: 'record_processor_20580a7f')
+2026-10-29 00:59:53.823 - _ServiceRegistry - INFO - Registered: Record_Processor ('record_processor_f230710e') [0/0]
+2026-10-29 00:59:53.823 - system_controller - INFO - Registered Record Processor (id: 'record_processor_f230710e')
+2026-10-29 00:59:53.823 - system_controller - INFO - Registered Record Processor (id: 'record_processor_f230710e')
+2026-10-29 00:59:53.824 - _ServiceRegistry - INFO - Registered: Record_Processor ('record_processor_0f9eb3b7') [0/0]
+2026-10-29 00:59:53.824 - system_controller - INFO - Registered Record Processor (id: 'record_processor_0f9eb3b7')
+2026-10-29 00:59:53.824 - system_controller - INFO - Registered Record Processor (id: 'record_processor_0f9eb3b7')
+2026-10-29 00:59:53.825 - _ServiceRegistry - INFO - Registered: Record_Processor ('record_processor_72ebe7b4') [0/0]
+2026-10-29 00:59:53.825 - system_controller - INFO - Registered Record Processor (id: 'record_processor_72ebe7b4')
+2026-10-29 00:59:53.825 - system_controller - INFO - Registered Record Processor (id: 'record_processor_72ebe7b4')
+2026-10-29 00:59:53.825 - _ServiceRegistry - INFO - Registered: Record_Processor ('record_processor_89164fb4') [0/0]
+2026-10-29 00:59:53.825 - system_controller - INFO - Registered Record Processor (id: 'record_processor_89164fb4')
+2026-10-29 00:59:53.825 - system_controller - INFO - Registered Record Processor (id: 'record_processor_89164fb4')
+2026-10-29 00:59:53.825 - _ServiceRegistry - INFO - Registered: Record_Processor ('record_processor_422361c6') [0/0]
+2026-10-29 00:59:53.825 - system_controller - INFO - Registered Record Processor (id: 'record_processor_422361c6')
+2026-10-29 00:59:53.825 - system_controller - INFO - Registered Record Processor (id: 'record_processor_422361c6')
+2026-10-29 00:59:53.827 - _ServiceRegistry - INFO - Registered: Record_Processor ('record_processor_88adf781') [0/0]
+2026-10-29 00:59:53.827 - system_controller - INFO - Registered Record Processor (id: 'record_processor_88adf781')
+2026-10-29 00:59:53.828 - _ServiceRegistry - INFO - Registered: Record_Processor ('record_processor_3a89f96d') [0/0]
+2026-10-29 00:59:53.828 - system_controller - INFO - Registered Record Processor (id: 'record_processor_3a89f96d')
+2026-10-29 00:59:53.828 - system_controller - INFO - Registered Record Processor (id: 'record_processor_3a89f96d')
+2026-10-29 00:59:53.904 - system_controller - INFO - Registered Timing Manager (id: 'timing_manager')
+2026-10-29 00:59:53.919 - _ServiceRegistry - INFO - Registered: Worker ('worker_fd09c616') [0/0]
+2026-10-29 00:59:53.919 - system_controller - INFO - Registered Worker (id: 'worker_fd09c616')
+2026-10-29 00:59:53.919 - system_controller - INFO - Registered Worker (id: 'worker_fd09c616')
+2026-10-29 00:59:53.922 - _ServiceRegistry - INFO - Registered: Worker ('worker_f5c3a8a7') [0/0]
+2026-10-29 00:59:53.923 - system_controller - INFO - Registered Worker (id: 'worker_f5c3a8a7')
+2026-10-29 00:59:53.923 - system_controller - INFO - Registered Worker (id: 'worker_f5c3a8a7')
+2026-10-29 00:59:53.927 - _ServiceRegistry - INFO - Registered: Worker ('worker_d06efb86') [0/0]
+2026-10-29 00:59:53.927 - system_controller - INFO - Registered Worker (id: 'worker_d06efb86')
+2026-10-29 00:59:53.927 - system_controller - INFO - Registered Worker (id: 'worker_d06efb86')
+2026-10-29 00:59:53.928 - system_controller - INFO - Registered Record Processor (id: 'record_processor_88adf781')
+2026-10-29 00:59:53.931 - _ServiceRegistry - INFO - Registered: Worker ('worker_a413573a') [0/0]
+2026-10-29 00:59:53.931 - system_controller - INFO - Registered Worker (id: 'worker_a413573a')
+2026-10-29 00:59:53.931 - system_controller - INFO - Registered Worker (id: 'worker_a413573a')
+2026-10-29 00:59:53.936 - _ServiceRegistry - INFO - Registered: Worker ('worker_b545956d') [0/0]
+2026-10-29 00:59:53.936 - system_controller - INFO - Registered Worker (id: 'worker_b545956d')
+2026-10-29 00:59:53.936 - _ServiceRegistry - INFO - Registered: Worker ('worker_6ec3cba8') [0/0]
+2026-10-29 00:59:53.936 - system_controller - INFO - Registered Worker (id: 'worker_6ec3cba8')
+2026-10-29 00:59:53.936 - system_controller - INFO - Registered Worker (id: 'worker_b545956d')
+2026-10-29 00:59:53.936 - system_controller - INFO - Registered Worker (id: 'worker_6ec3cba8')
+2026-10-29 00:59:53.936 - _ServiceRegistry - INFO - Registered: Worker ('worker_395d9ac9') [0/0]
+2026-10-29 00:59:53.936 - system_controller - INFO - Registered Worker (id: 'worker_395d9ac9')
+2026-10-29 00:59:53.936 - system_controller - INFO - Registered Worker (id: 'worker_395d9ac9')
+2026-10-29 00:59:53.944 - _ServiceRegistry - INFO - Registered: Worker ('worker_827a1fbe') [0/0]
+2026-10-29 00:59:53.944 - system_controller - INFO - Registered Worker (id: 'worker_827a1fbe')
+2026-10-29 00:59:53.944 - system_controller - INFO - Registered Worker (id: 'worker_827a1fbe')
+2026-10-29 00:59:53.944 - _ServiceRegistry - INFO - Registered: Worker ('worker_0077cf83') [0/0]
+2026-10-29 00:59:53.944 - system_controller - INFO - Registered Worker (id: 'worker_0077cf83')
+2026-10-29 00:59:53.944 - system_controller - INFO - Registered Worker (id: 'worker_0077cf83')
+2026-10-29 00:59:54.007 - _ServiceRegistry - INFO - Registered: Worker ('worker_7effe5ff') [0/0]
+2026-10-29 00:59:54.007 - system_controller - INFO - Registered Worker (id: 'worker_7effe5ff')
+2026-10-29 00:59:54.008 - _ServiceRegistry - INFO - Registered: Worker ('worker_2159b27b') [0/0]
+2026-10-29 00:59:54.008 - system_controller - INFO - Registered Worker (id: 'worker_2159b27b')
+2026-10-29 00:59:54.008 - _ServiceRegistry - INFO - Registered: Worker ('worker_1206f44e') [0/0]
+2026-10-29 00:59:54.008 - system_controller - INFO - Registered Worker (id: 'worker_1206f44e')
+2026-10-29 00:59:54.008 - _ServiceRegistry - INFO - Registered: Worker ('worker_1667e9cb') [0/0]
+2026-10-29 00:59:54.008 - system_controller - INFO - Registered Worker (id: 'worker_1667e9cb')
+2026-10-29 00:59:54.009 - _ServiceRegistry - INFO - Registered: Worker ('worker_3980f638') [0/0]
+2026-10-29 00:59:54.009 - system_controller - INFO - Registered Worker (id: 'worker_3980f638')
+2026-10-29 00:59:54.009 - _ServiceRegistry - INFO - Registered: Worker ('worker_77049c10') [0/0]
+2026-10-29 00:59:54.009 - system_controller - INFO - Registered Worker (id: 'worker_77049c10')
+2026-10-29 00:59:54.009 - _ServiceRegistry - INFO - Registered: Worker ('worker_20a1b4c1') [0/0]
+2026-10-29 00:59:54.009 - system_controller - INFO - Registered Worker (id: 'worker_20a1b4c1')
+2026-10-29 00:59:54.009 - _ServiceRegistry - INFO - Registered: Worker ('worker_4a1cf566') [0/0]
+2026-10-29 00:59:54.009 - system_controller - INFO - Registered Worker (id: 'worker_4a1cf566')
+2026-10-29 00:59:54.010 - _ServiceRegistry - INFO - Registered: Worker ('worker_e27ef67e') [0/0]
+2026-10-29 00:59:54.010 - system_controller - INFO - Registered Worker (id: 'worker_e27ef67e')
+2026-10-29 00:59:54.010 - _ServiceRegistry - INFO - Registered: Worker ('worker_8bc99e58') [0/0]
+2026-10-29 00:59:54.010 - system_controller - INFO - Registered Worker (id: 'worker_8bc99e58')
+2026-10-29 00:59:54.011 - _ServiceRegistry - INFO - Registered: Worker ('worker_8ec04593') [0/0]
+2026-10-29 00:59:54.011 - system_controller - INFO - Registered Worker (id: 'worker_8ec04593')
+2026-10-29 00:59:54.011 - _ServiceRegistry - INFO - Registered: Worker ('worker_f9068339') [0/0]
+2026-10-29 00:59:54.011 - system_controller - INFO - Registered Worker (id: 'worker_f9068339')
+2026-10-29 00:59:54.012 - _ServiceRegistry - INFO - Registered: Worker ('worker_76a12e82') [0/0]
+2026-10-29 00:59:54.012 - system_controller - INFO - Registered Worker (id: 'worker_76a12e82')
+2026-10-29 00:59:54.012 - _ServiceRegistry - INFO - Registered: Worker ('worker_05a12813') [0/0]
+2026-10-29 00:59:54.012 - system_controller - INFO - Registered Worker (id: 'worker_05a12813')
+2026-10-29 00:59:54.013 - _ServiceRegistry - INFO - Registered: Worker ('worker_4a3ad431') [0/0]
+2026-10-29 00:59:54.013 - system_controller - INFO - Registered Worker (id: 'worker_4a3ad431')
+2026-10-29 00:59:54.013 - _ServiceRegistry - INFO - Registered: Worker ('worker_220c81c8') [0/0]
+2026-10-29 00:59:54.013 - system_controller - INFO - Registered Worker (id: 'worker_220c81c8')
+2026-10-29 00:59:54.013 - _ServiceRegistry - INFO - Registered: Worker ('worker_d9f5ff1c') [0/0]
+2026-10-29 00:59:54.013 - system_controller - INFO - Registered Worker (id: 'worker_d9f5ff1c')
+2026-10-29 00:59:54.014 - _ServiceRegistry - INFO - Registered: Worker ('worker_677db04e') [0/0]
+2026-10-29 00:59:54.014 - system_controller - INFO - Registered Worker (id: 'worker_677db04e')
+2026-10-29 00:59:54.014 - _ServiceRegistry - INFO - Registered: Worker ('worker_3a831147') [0/0]
+2026-10-29 00:59:54.014 - system_controller - INFO - Registered Worker (id: 'worker_3a831147')
+2026-10-29 00:59:54.014 - _ServiceRegistry - INFO - Registered: Worker ('worker_5a16e7a7') [0/0]
+2026-10-29 00:59:54.014 - system_controller - INFO - Registered Worker (id: 'worker_5a16e7a7')
+2026-10-29 00:59:54.015 - _ServiceRegistry - INFO - Registered: Worker ('worker_1465d48f') [0/0]
+2026-10-29 00:59:54.015 - system_controller - INFO - Registered Worker (id: 'worker_1465d48f')
+2026-10-29 00:59:54.015 - _ServiceRegistry - INFO - Registered: Worker ('worker_79fae9d9') [0/0]
+2026-10-29 00:59:54.015 - system_controller - INFO - Registered Worker (id: 'worker_79fae9d9')
+2026-10-29 00:59:54.015 - _ServiceRegistry - INFO - Registered: Worker ('worker_fedf3391') [0/0]
+2026-10-29 00:59:54.015 - system_controller - INFO - Registered Worker (id: 'worker_fedf3391')
+2026-10-29 00:59:54.043 - system_controller - INFO - Registered Worker (id: 'worker_7effe5ff')
+2026-10-29 00:59:54.045 - system_controller - INFO - Registered Worker (id: 'worker_3980f638')
+2026-10-29 00:59:54.046 - system_controller - INFO - Registered Worker (id: 'worker_1206f44e')
+2026-10-29 00:59:54.047 - system_controller - INFO - Registered Worker (id: 'worker_77049c10')
+2026-10-29 00:59:54.050 - system_controller - INFO - Registered Worker (id: 'worker_4a1cf566')
+2026-10-29 00:59:54.051 - system_controller - INFO - Registered Worker (id: 'worker_e27ef67e')
+2026-10-29 00:59:54.051 - system_controller - INFO - Registered Worker (id: 'worker_8bc99e58')
+2026-10-29 00:59:54.079 - system_controller - INFO - Registered Worker (id: 'worker_8ec04593')
+2026-10-29 00:59:54.084 - system_controller - INFO - Registered Worker (id: 'worker_76a12e82')
+2026-10-29 00:59:54.087 - system_controller - INFO - Registered Worker (id: 'worker_f9068339')
+2026-10-29 00:59:54.088 - system_controller - INFO - Registered Worker (id: 'worker_1667e9cb')
+2026-10-29 00:59:54.090 - system_controller - INFO - Registered Worker (id: 'worker_05a12813')
+2026-10-29 00:59:54.093 - system_controller - INFO - Registered Worker (id: 'worker_220c81c8')
+2026-10-29 00:59:54.102 - system_controller - INFO - Registered Worker (id: 'worker_d9f5ff1c')
+2026-10-29 00:59:54.102 - system_controller - INFO - Registered Worker (id: 'worker_4a3ad431')
+2026-10-29 00:59:54.107 - system_controller - INFO - Registered Worker (id: 'worker_5a16e7a7')
+2026-10-29 00:59:54.107 - system_controller - INFO - Registered Worker (id: 'worker_20a1b4c1')
+2026-10-29 00:59:54.107 - system_controller - INFO - Registered Worker (id: 'worker_2159b27b')
+2026-10-29 00:59:54.107 - system_controller - INFO - Registered Worker (id: 'worker_3a831147')
+2026-10-29 00:59:54.108 - system_controller - INFO - Registered Worker (id: 'worker_677db04e')
+2026-10-29 00:59:54.109 - system_controller - INFO - Registered Worker (id: 'worker_1465d48f')
+2026-10-29 00:59:54.111 - system_controller - INFO - Registered Worker (id: 'worker_79fae9d9')
+2026-10-29 00:59:54.114 - system_controller - INFO - Registered Worker (id: 'worker_fedf3391')
+2026-10-29 00:59:54.134 - system_controller - INFO - System state: initializing -> configuring
+2026-10-29 00:59:54.134 - system_controller - INFO - AIPerf System is CONFIGURING
+2026-10-29 00:59:54.134 - system_controller - INFO - Configuring all services to start profiling
+2026-10-29 00:59:54.135 - timing_manager - INFO - Waiting for dataset to be configured before configuring timing
+2026-10-29 00:59:54.135 - InferenceResultParser_67ba8943 - INFO - Tokenization is disabled for this endpoint, skipping tokenizer configuration
+2026-10-29 00:59:54.135 - InferenceResultParser_2d640a67 - INFO - Tokenization is disabled for this endpoint, skipping tokenizer configuration
+2026-10-29 00:59:54.135 - InferenceResultParser_017fda41 - INFO - Tokenization is disabled for this endpoint, skipping tokenizer configuration
+2026-10-29 00:59:54.135 - InferenceResultParser_5271205a - INFO - Tokenization is disabled for this endpoint, skipping tokenizer configuration
+2026-10-29 00:59:54.135 - InferenceResultParser_7da56642 - INFO - Tokenization is disabled for this endpoint, skipping tokenizer configuration
+2026-10-29 00:59:54.135 - InferenceResultParser_78c23da5 - INFO - Tokenization is disabled for this endpoint, skipping tokenizer configuration
+2026-10-29 00:59:54.135 - InferenceResultParser_ae8448bf - INFO - Tokenization is disabled for this endpoint, skipping tokenizer configuration
+2026-10-29 00:59:54.135 - InferenceResultParser_f360441d - INFO - Tokenization is disabled for this endpoint, skipping tokenizer configuration
+2026-10-29 00:59:54.144 - server_metrics_manager - INFO - Server Metrics: Capturing baseline metrics...
+2026-10-29 00:59:54.165 - http://127.0.0.1:8620/metrics - INFO - Skipping unsupported summary metric: http_request_size_bytes
+2026-10-29 00:59:54.165 - http://127.0.0.1:8620/metrics - INFO - Skipping unsupported summary metric: http_response_size_bytes
+2026-10-29 00:59:54.166 - system_controller - INFO - Server metrics enabled - 1/1 endpoint(s) reachable.
+2026-10-29 00:59:54.214 - dataset_manager - INFO - Memory-mapped dataset cache HIT (key=bc7b30aafad0d6848ae4fa21e6dbb92a); skipping tokenizer + composer.
+2026-10-29 00:59:54.214 - aiperf.dataset.mmap_cache - INFO - Restored mmap cache file dataset.dat via hardlink in 0.000s (2.06 GiB)
+2026-10-29 00:59:54.214 - aiperf.dataset.mmap_cache - INFO - Restored mmap cache file index.dat via hardlink in 0.000s (0.00 GiB)
+2026-10-29 00:59:54.214 - aiperf.dataset.mmap_cache - INFO - Restored mmap cache files in 0.000s via dataset=hardlink index=hardlink (dataset=2.06 GiB, index=0.00 GiB)
+2026-10-29 00:59:55.181 - dataset_manager - INFO - sampling strategy: sequential, unique conversations: 9602, unique turn count: 68266
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO - TrajectorySource: built 32 trajectories from 393 traces
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -   range cfg=[0.25, 0.75]  observed sample pct: min= 31% median= 55% max= 75%
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=00  sample_time= 53%  root_next= 45/61  ( 74% turns)  live=1 ready=1  trace_id=002001296e8a8c38ad9d7cc436d691afc602
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=01  sample_time= 49%  root_next=  5/33  ( 15% turns)  live=1 ready=1  trace_id=006c98de37d819e95b0840e25426bb7ca99d
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=02  sample_time= 67%  root_next= 24/29  ( 83% turns)  live=1 ready=1  trace_id=00ca01c4aaeccee751ae6285beb54dea262f
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=03  sample_time= 56%  root_next=  0/16  (  0% turns)  live=1 ready=1  trace_id=0196085d85d2075a50b74cd8795ffbdcea9a
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=04  sample_time= 47%  root_next=  0/13  (  0% turns)  live=2 ready=2  trace_id=02bc0afb13f7a2d9efa86c28511261d85c0e
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=05  sample_time= 47%  root_next= 17/28  ( 61% turns)  live=1 ready=1  trace_id=03e110ac6921c2fe9ac7772a9654314a2beb
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=06  sample_time= 74%  root_next=  0/54  (  0% turns)  live=13 ready=13  trace_id=0470d446a4514dfe0c6ad0be92853bd13287
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=07  sample_time= 35%  root_next=  3/7   ( 43% turns)  live=1 ready=1  trace_id=04dba6fe621301a1d01fd63b8d02c9645c48
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=08  sample_time= 75%  root_next= 32/34  ( 94% turns)  live=1 ready=1  trace_id=05c249572509162371b7b82339674db64b5d
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=09  sample_time= 42%  root_next= 49/52  ( 94% turns)  live=1 ready=1  trace_id=05f72f78a037cfa5cd4e4541960a574701d9
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=10  sample_time= 66%  root_next=  0/1   (  0% turns)  live=1 ready=1  trace_id=063179eb93f4337a662e859c5a2c5638e03f
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=11  sample_time= 49%  root_next= 27/39  ( 69% turns)  live=1 ready=1  trace_id=069d7bf5f1efb4e76e3c84510367e6af78a5
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=12  sample_time= 43%  root_next= 25/34  ( 74% turns)  live=1 ready=1  trace_id=077ea9e6554f45bbad9c24a8462bae9a8512
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=13  sample_time= 68%  root_next=  8/9   ( 89% turns)  live=3 ready=2  trace_id=07dd40536557a1d6440a923557c3129dc929
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=14  sample_time= 62%  root_next=  6/19  ( 32% turns)  live=2 ready=2  trace_id=085411a4cc4b15108dd9b50007261a2efb65
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=15  sample_time= 59%  root_next=  0/49  (  0% turns)  live=4 ready=4  trace_id=085aacf44ac5428ad3c6b4f6cd431e083832
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=16  sample_time= 34%  root_next= 13/33  ( 39% turns)  live=1 ready=1  trace_id=0a279af1bec84c6ab033bb03f5d8bfd6b08d
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=17  sample_time= 68%  root_next= 21/31  ( 68% turns)  live=1 ready=1  trace_id=0a688303b1ae62a97607af8021f2130c2caf
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=18  sample_time= 69%  root_next=  0/138 (  0% turns)  live=1 ready=1  trace_id=0b7f3ca692f15ae2651a310d9411d70794aa
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=19  sample_time= 42%  root_next=  7/16  ( 44% turns)  live=1 ready=1  trace_id=0bc9c4f798d321286bf39f2543c0c4e4c059
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=20  sample_time= 50%  root_next= 19/24  ( 79% turns)  live=1 ready=1  trace_id=0bcd99353218b9a386b1c4aec13d77abecdb
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=21  sample_time= 67%  root_next= 25/46  ( 54% turns)  live=1 ready=1  trace_id=0bed163ac9566086e14ffd85c7481096d49d
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=22  sample_time= 70%  root_next=  6/32  ( 19% turns)  live=1 ready=1  trace_id=0d41be2aa98333f3662682210647e5971c7b
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=23  sample_time= 48%  root_next= 16/28  ( 57% turns)  live=1 ready=1  trace_id=0d8a816e4819b765d81ff748da94d463f3b2
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=24  sample_time= 67%  root_next=  4/49  (  8% turns)  live=1 ready=1  trace_id=0db32e2f852a2ea24ed616b31975a84da5e4
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=25  sample_time= 72%  root_next= 42/43  ( 98% turns)  live=1 ready=1  trace_id=0dedb07b5e4362b028db9d8ab90fff7fd4ad
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=26  sample_time= 34%  root_next=  9/26  ( 35% turns)  live=1 ready=1  trace_id=0e4206535a79f980e2b1091181202ea987fe
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=27  sample_time= 56%  root_next=  4/19  ( 21% turns)  live=1 ready=1  trace_id=0ede42538334da8586bc60008762abfc0ab7
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=28  sample_time= 62%  root_next=  0/2   (  0% turns)  live=1 ready=1  trace_id=0f909e7d63c0d5e1f060d727ada25d910d89
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=29  sample_time= 37%  root_next= 66/84  ( 79% turns)  live=1 ready=1  trace_id=1007f04d2c64580308858bb42f292992929d
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=30  sample_time= 35%  root_next=  0/55  (  0% turns)  live=13 ready=13  trace_id=11310dce936f02050cadaeae295bcdd1ce7f
+2026-10-29 00:59:56.591 - aiperf.timing.trajectory_source - INFO -     lane=31  sample_time= 31%  root_next= 15/23  ( 65% turns)  live=1 ready=1  trace_id=117ebe75819d050f308a0a81647893abd02d
+2026-10-29 00:59:56.591 - PhaseOrchestrator_c99271e5 - INFO - Initialized 2 phase(s): ['Warmup', 'Profiling']
+2026-10-29 00:59:56.766 - dataset_manager - INFO - Dataset client initialized and freed 0 conversations from memory
+2026-10-29 00:59:56.789 - system_controller - INFO - All services configured in 2.65 seconds
+2026-10-29 00:59:56.789 - system_controller - INFO - System state: configuring -> ready
+2026-10-29 00:59:56.789 - system_controller - INFO - AIPerf System is CONFIGURED
+2026-10-29 00:59:56.791 - server_metrics_manager - INFO - Server Metrics: Started 1 collector(s) successfully
+2026-10-29 00:59:56.867 - PhaseRunner - NOTICE - Phase agentic.warmup (warmup) started | target: 31 requests
+2026-10-29 00:59:56.867 - AgenticReplayTiming - INFO - WARMUP execute: dispatching 31 trajectory credits
+2026-10-29 00:59:56.867 - AgenticReplayTiming - INFO - WARMUP spread: 56048.7s ramp aligning 31 request(s) on t* (earliest fires at 0, last at 56048.7s)
+2026-10-29 00:59:57.815 - records_manager - INFO - Credit phase start: warmup
+2026-10-29 00:59:57.854 - system_controller - INFO - All services started profiling successfully
+2026-10-29 00:59:57.854 - system_controller - INFO - System state: ready -> profiling
+2026-10-29 00:59:57.855 - system_controller - INFO - AIPerf System is PROFILING
+2026-10-29 00:59:57.855 - system_controller - INFO - Waiting for result domains: profile, server_metrics
+2026-10-29 01:00:01.926 - records_manager - WARNING - Token usage is reported but no prompt-cache read tokens were seen (usage.prompt_tokens_details.cached_tokens absent). If your server uses prefix/KV caching, enable cache reporting so AIPerf can populate the prompt-cache metrics: vLLM --enable-prompt-tokens-details, SGLang --enable-cache-report (TRT-LLM reports it by default).
+2026-10-29 01:00:01.926 - MetricsAccumulator_fd3ca203 - WARNING - Token usage is reported but no prompt-cache read tokens were seen (usage.prompt_tokens_details.cached_tokens absent). If your server uses prefix/KV caching, enable cache reporting so AIPerf can populate the prompt-cache metrics: vLLM --enable-prompt-tokens-details, SGLang --enable-cache-report (TRT-LLM reports it by default).
+2026-10-29 01:00:26.873 - PhaseRunner - INFO - Phase warmup progress | returned=1/31 | sent=2 | in_flight=1 | errors=0 | elapsed=30.0s
+2026-10-29 01:00:56.880 - PhaseRunner - INFO - Phase warmup progress | returned=2/31 | sent=3 | in_flight=1 | errors=0 | elapsed=60.0s
+2026-10-29 01:01:26.886 - PhaseRunner - INFO - Phase warmup progress | returned=4/31 | sent=5 | in_flight=1 | errors=0 | elapsed=90.0s
+2026-10-29 01:01:56.894 - PhaseRunner - INFO - Phase warmup progress | returned=4/31 | sent=5 | in_flight=1 | errors=0 | elapsed=120.0s
+2026-10-29 01:02:26.898 - PhaseRunner - INFO - Phase warmup progress | returned=6/31 | sent=6 | in_flight=0 | errors=0 | elapsed=150.0s
+2026-10-29 01:02:56.902 - PhaseRunner - INFO - Phase warmup progress | returned=7/31 | sent=8 | in_flight=1 | errors=0 | elapsed=180.0s
+2026-10-29 01:03:26.907 - PhaseRunner - INFO - Phase warmup progress | returned=8/31 | sent=9 | in_flight=1 | errors=0 | elapsed=210.0s
+2026-10-29 01:03:56.915 - PhaseRunner - INFO - Phase warmup progress | returned=9/31 | sent=10 | in_flight=1 | errors=0 | elapsed=240.0s
+2026-10-29 01:04:26.920 - PhaseRunner - INFO - Phase warmup progress | returned=11/31 | sent=11 | in_flight=0 | errors=0 | elapsed=270.1s
+2026-10-29 01:04:56.923 - PhaseRunner - INFO - Phase warmup progress | returned=12/31 | sent=13 | in_flight=1 | errors=0 | elapsed=300.1s
+2026-10-29 01:05:26.927 - PhaseRunner - INFO - Phase warmup progress | returned=14/31 | sent=14 | in_flight=0 | errors=0 | elapsed=330.1s
+2026-10-29 01:05:56.930 - PhaseRunner - INFO - Phase warmup progress | returned=15/31 | sent=16 | in_flight=1 | errors=0 | elapsed=360.1s
+2026-10-29 01:06:26.936 - PhaseRunner - INFO - Phase warmup progress | returned=16/31 | sent=17 | in_flight=1 | errors=0 | elapsed=390.1s
+2026-10-29 01:06:56.943 - PhaseRunner - INFO - Phase warmup progress | returned=17/31 | sent=17 | in_flight=0 | errors=0 | elapsed=420.1s
+2026-10-29 01:07:26.949 - PhaseRunner - INFO - Phase warmup progress | returned=17/31 | sent=18 | in_flight=1 | errors=0 | elapsed=450.1s
+2026-10-29 01:07:56.956 - PhaseRunner - INFO - Phase warmup progress | returned=18/31 | sent=19 | in_flight=1 | errors=0 | elapsed=480.1s
+2026-10-29 01:08:26.963 - PhaseRunner - INFO - Phase warmup progress | returned=20/31 | sent=20 | in_flight=0 | errors=0 | elapsed=510.1s
+2026-10-29 01:08:56.968 - PhaseRunner - INFO - Phase warmup progress | returned=21/31 | sent=22 | in_flight=1 | errors=0 | elapsed=540.1s
+2026-10-29 01:09:26.973 - PhaseRunner - INFO - Phase warmup progress | returned=22/31 | sent=23 | in_flight=1 | errors=0 | elapsed=570.1s
+2026-10-29 01:09:56.977 - PhaseRunner - INFO - Phase warmup progress | returned=22/31 | sent=23 | in_flight=1 | errors=0 | elapsed=600.1s
+2026-10-29 01:10:26.981 - PhaseRunner - INFO - Phase warmup progress | returned=23/31 | sent=26 | in_flight=3 | errors=0 | elapsed=630.1s
+2026-10-29 01:10:55.485 - PhaseRunner - NOTICE - Phase agentic.warmup (warmup) sending complete | sent=31, completed=24, in_flight=7 | sessions: sent=24, completed=0
+2026-10-29 01:10:56.984 - PhaseRunner - INFO - Phase warmup progress | returned=24/31 | sent=31 | in_flight=7 | errors=0 | elapsed=660.1s
+2026-10-29 01:11:26.990 - PhaseRunner - INFO - Phase warmup progress | returned=26/31 | sent=31 | in_flight=5 | errors=0 | elapsed=690.1s
+2026-10-29 01:11:56.993 - PhaseRunner - INFO - Phase warmup progress | returned=27/31 | sent=31 | in_flight=4 | errors=0 | elapsed=720.1s
+2026-10-29 01:12:26.998 - PhaseRunner - INFO - Phase warmup progress | returned=28/31 | sent=31 | in_flight=3 | errors=0 | elapsed=750.1s
+2026-10-29 01:12:57.001 - PhaseRunner - INFO - Phase warmup progress | returned=30/31 | sent=31 | in_flight=1 | errors=0 | elapsed=780.1s
+2026-10-29 01:13:05.834 - PhaseRunner - NOTICE - Phase agentic.warmup (warmup) complete | completed=31, cancelled=0, errors=0 | sessions: completed=0, cancelled=0 | elapsed=788.97s
+2026-10-29 01:13:05.835 - AgenticReplayTiming - INFO - Global system-idle cap summary: limit=10s, jumps=22, skipped=55390.046s
+2026-10-29 01:13:05.835 - aiperf.timing.branch_orchestrator - INFO - BranchOrchestrator stats: spawned=0 completed=0 errored=0 suspended=0 resumed=0 parents_failed_due_to_child_error=0 joins_suppressed=0 delayed=0
+2026-10-29 01:13:05.835 - PhaseRunner - INFO - Session-tree slots for phase warmup: peak_open=0 (target concurrency 32); released 0 still-open at teardown; late_events=0
+2026-10-29 01:13:05.835 - server_metrics_manager - INFO - Server Metrics: Warmup complete, capturing final warmup metrics...
+2026-10-29 01:13:05.953 - aiperf.timing.replay_dependencies - INFO - Replay interval barriers active: 68266 requests, 34015 gated turns, join-widths={1: 26371, 2: 5215, 3: 1416, 4: 473, 5: 151, 6: 80, 7: 62, 8: 91, 9: 72, 10: 51, 11: 20, 12: 9, 13: 2, 14: 2}
+2026-10-29 01:13:05.953 - AgenticReplayTiming - INFO - PROFILING setup: 32 trajectory lanes; recycle draws roots from the dataset sampler
+2026-10-29 01:13:05.953 - AgenticReplayTiming - INFO - PROFILING: 8 rootless + 1 gated-parent lanes of 32 dispatch no root credit at start and hold a lane credit instead (so they still count toward concurrency); rootless lanes recycle into a fresh root once their background subagents drain
+2026-10-29 01:13:05.953 - PhaseRunner - NOTICE - Phase profiling (profiling) started | phase_index=0 | profiling_index=0 | target: 300.0s duration
+2026-10-29 01:13:05.954 - records_manager - INFO - Credit phase start: profiling
+2026-10-29 01:13:05.955 - PhaseRunner - INFO - Waiting for event 'profiling phase sending' with timeout of 299.998121481s
+2026-10-29 01:13:05.955 - AgenticReplayTiming - INFO - PROFILING execute: resuming 32 trajectory sessions (spread; first-request spread 53809.2s)
+2026-10-29 01:13:05.955 - EventLoopMonitor - WARNING - Event loop for timing_manager is taking too long to run. Overhead: 108.94ms
+2026-10-29 01:18:05.953 - PhaseRunner - INFO - Timeout of 299.998121481s elapsed for event 'profiling phase sending'
+2026-10-29 01:18:05.953 - PhaseRunner - NOTICE - Phase profiling (profiling) sending complete | sent=73, completed=68, in_flight=5 | sessions: sent=11, completed=1 | timeout_triggered=True
+2026-10-29 01:18:05.954 - PhaseRunner - INFO - Waiting for event 'profiling phase credits returned' with timeout of 29.999514302000023s
+2026-10-29 01:18:05.954 - records_manager - INFO - Sent 73 requests. Waiting for all to complete...
+2026-10-29 01:18:35.954 - PhaseRunner - INFO - Timeout of 29.999514302000023s elapsed for event 'profiling phase credits returned'
+2026-10-29 01:18:35.954 - PhaseRunner - WARNING - Phase profiling timed out, cancelling all credits. Stats: sent=73, completed=70, cancelled=0, in_flight=3
+2026-10-29 01:18:35.954 - StickyCreditRouter_efd70232 - INFO - Sent cancellation requests for 3 in-flight credits across 3 workers
+2026-10-29 01:18:35.955 - PhaseRunner - INFO - Waiting for all cancelled credits to be returned for phase profiling. Need 3 more credits.
+2026-10-29 01:18:45.956 - PhaseRunner - ERROR - Timeout waiting 10.0s for cancelled credits to return. Some credits may be stuck. Forcing phase completion.
+2026-10-29 01:18:45.956 - PhaseRunner - WARNING - Released stuck slots for phase profiling: session=18, prefill=0
+2026-10-29 01:18:45.956 - PhaseRunner - NOTICE - Phase profiling (profiling) complete | completed=70, cancelled=3, errors=0 | sessions: completed=1, cancelled=0 | elapsed=340.00s | grace_period_timeout=True
+2026-10-29 01:18:45.956 - AgenticReplayTiming - INFO - Global system-idle cap summary: limit=10s, jumps=0, skipped=0.000s
+2026-10-29 01:18:45.956 - aiperf.timing.branch_orchestrator - INFO - BranchOrchestrator stats: spawned=40 completed=3 errored=0 suspended=1 resumed=1 parents_failed_due_to_child_error=0 joins_suppressed=0 delayed=0
+2026-10-29 01:18:45.957 - aiperf.timing.branch_orchestrator - WARNING - BranchOrchestrator leaked state at cleanup: 0 active_joins, 1 future_joins, 37 tracked children, 9 parents with descendants
+2026-10-29 01:18:45.957 - aiperf.timing.branch_orchestrator - WARNING - Abandoned pending join for parent b3efea61-66d4-4dbd-bdc6-ccf6d633f36f (outstanding=1, gated_turn_index=7, age_ms=340001)
+2026-10-29 01:18:45.957 - PhaseRunner - INFO - Session-tree slots for phase profiling: peak_open=18 (target concurrency 32); released 18 still-open at teardown; late_events=0
+2026-10-29 01:18:45.957 - PhaseOrchestrator_c99271e5 - NOTICE - All credits completed
+2026-10-29 01:18:45.957 - records_manager - INFO - Received CREDIT_PHASE_COMPLETE message, Phase complete: PhaseRecordsStats(phase=CreditPhase.PROFILING, phase_index=0, profiling_index=0, phase_name='profiling', phase_kind='profiling', start_ns=1793236385953689461, sent_end_ns=1793236685953732371, requests_end_ns=1793236725956316071, baseline_start_ns=1793236385953658751, baseline_end_ns=1793236725956331841, total_expected_requests=None, expected_duration_sec=None, expected_num_sessions=None, expected_grace_period_sec=None, final_requests_sent=None, final_requests_completed=70, final_requests_cancelled=3, final_request_errors=0, final_sent_sessions=None, final_completed_sessions=None, final_cancelled_sessions=None, timeout_triggered=True, grace_period_timeout_triggered=True, was_cancelled=False, records_end_ns=None, success_records=70, error_records=0)
+2026-10-29 01:18:45.957 - records_manager - NOTICE - All requests have completed, please wait for the results to be processed (currently 70 of 70 records processed)...
+2026-10-29 01:18:45.957 - records_manager - INFO - All credits complete, please wait for the results to be processed...
+2026-10-29 01:18:45.957 - system_controller - INFO - Received credits complete from 'timing_manager'
+2026-10-29 01:18:45.958 - system_controller - INFO - System state: profiling -> processing
+2026-10-29 01:18:45.958 - records_manager - INFO - Processed 70 valid requests and 0 errors (70 total).
+2026-10-29 01:18:45.958 - records_manager - INFO - Received all records, processing now...
+2026-10-29 01:18:45.959 - server_metrics_manager - INFO - Waiting 2.0s for server metrics flush period...
+2026-10-29 01:18:47.957 - server_metrics_manager - INFO - Server Metrics: Profiling complete, capturing final metrics...
+2026-10-29 01:18:51.484 - system_controller - INFO - Waiting for result domains: profile
+2026-10-29 01:18:51.485 - records_manager - INFO - Processing records results...
+2026-10-29 01:18:51.712 - records_manager - INFO - _finalize_and_process_results completed
+2026-10-29 01:18:51.843 - system_controller - INFO - System state: processing -> stopping
+2026-10-29 01:18:51.843 - system_controller - INFO - All results received, initiating shutdown
+2026-10-29 01:18:51.843 - system_controller - INFO - System state: stopping -> shutdown
+2026-10-29 01:18:52.452 - ExporterManager - INFO - Exporting all records
+2026-10-29 01:18:52.833 - ExporterManager - INFO - Exporting console data

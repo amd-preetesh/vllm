@@ -1,0 +1,5 @@
+arm=fp8_dflash label=FP8 + DFlash2
+attn=ROCM_AITER_FA kv=fp8 retention=49920
+spec={"method":"dflash","num_speculative_tokens":7,"attention_backend":"TRITON_ATTN","kv_cache_dtype":"fp8","model":"/workspace/pretrained_models/z-lab/Qwen3.8-27B-DFlash2","max_model_len":262144}
+env=
+mode=full conc=32 util=0.7000

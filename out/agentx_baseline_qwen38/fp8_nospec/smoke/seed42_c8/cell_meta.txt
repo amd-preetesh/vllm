@@ -1,0 +1,5 @@
+arm=fp8_nospec label=FP8 + no spec
+attn=ROCM_AITER_FA kv=fp8 retention=49920
+spec=null
+env=
+mode=smoke conc=8 util=0.7000

@@ -1,0 +1,5 @@
+arm=uq_mtp_prod label=UQ + MTP (prod FlyDSL)
+attn=ROCM_AITER_UNIFIED_ATTN kv=ultraquant_4bit retention=0
+spec={"method":"mtp","num_speculative_tokens":5,"max_model_len":262144}
+env=VLLM_ULTRAQUANT_FUSED_MTP=1 VLLM_ULTRAQUANT_PDV_VERIFY=0 VLLM_ULTRAQUANT_PAIR_VERIFY=0 VLLM_ULTRAQUANT_SHARED_KV=0 VLLM_ULTRAQUANT_V3=0
+mode=full conc=36 util=0.7000

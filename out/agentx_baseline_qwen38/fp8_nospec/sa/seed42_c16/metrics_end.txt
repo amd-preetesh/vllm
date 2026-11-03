@@ -1,0 +1,8 @@
+vllm:prefix_cache_queries_total{engine="0",model_name="/huggingface/pretrained_models/Qwen/Qwen3.8-27B"} 6.713429e+06
+vllm:prefix_cache_queries_created{engine="0",model_name="/huggingface/pretrained_models/Qwen/Qwen3.8-27B"} 1.7932180227764158e+09
+vllm:prefix_cache_hits_total{engine="0",model_name="/huggingface/pretrained_models/Qwen/Qwen3.8-27B"} 4.5904e+06
+vllm:prefix_cache_hits_created{engine="0",model_name="/huggingface/pretrained_models/Qwen/Qwen3.8-27B"} 1.793218022776438e+09
+vllm:num_preemptions_total{engine="0",model_name="/huggingface/pretrained_models/Qwen/Qwen3.8-27B"} 0.0
+vllm:num_preemptions_created{engine="0",model_name="/huggingface/pretrained_models/Qwen/Qwen3.8-27B"} 1.7932180227765348e+09
+vllm:generation_tokens_total{engine="0",model_name="/huggingface/pretrained_models/Qwen/Qwen3.8-27B"} 36257.0
+vllm:generation_tokens_created{engine="0",model_name="/huggingface/pretrained_models/Qwen/Qwen3.8-27B"} 1.7932180227766354e+09

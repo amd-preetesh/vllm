@@ -1,0 +1,5 @@
+arm=uq_nospec label=UQ + no spec
+attn=ROCM_AITER_UNIFIED_ATTN kv=ultraquant_4bit retention=0
+spec=null
+env=VLLM_ULTRAQUANT_FUSED_MTP=0 VLLM_ULTRAQUANT_PDV_VERIFY=0
+mode=full conc=36 util=0.7000

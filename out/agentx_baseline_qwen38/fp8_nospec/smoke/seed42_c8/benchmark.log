@@ -1,0 +1,137 @@
+19:50:22.397 INFO     Starting AIPerf System (_single_run.py:81)
+19:50:22.402 INFO     Scenario 'inferencex-agentx-mvp': setting profiling-phase timing_mode=agentic_replay. (validator.py:226)
+19:50:22.402 INFO     Scenario 'inferencex-agentx-mvp': injecting extra_inputs.ignore_eos=true (was absent). (validator.py:285)
+19:50:22.402 INFO     Scenario 'inferencex-agentx-mvp': auto-set --cache-bust=first_turn_prefix (was at default none). (validator.py:538)
+19:50:22.402 INFO     Scenario 'inferencex-agentx-mvp': auto-set --system-idle-gap-cap-seconds=10.0 (was unset). (validator.py:779)
+19:50:22.402 WARNING  Scenario violation (override active): --benchmark-duration: got 60.0, required '>=900' (scenario 'inferencex-agentx-mvp' requires duration >= 900s to reach steady state and trigger KV offloading) (validator.py:113)
+19:50:22.578 INFO     GPU telemetry disabled via --no-gpu-telemetry (system_controller.py:506)
+19:50:22.593 INFO     Telemetry streaming is disabled (set --otel-url and/or --mlflow-tracking-uri to enable) (otel_metrics_results_processor.py:127)
+19:50:22.593 INFO     Record metrics export enabled: /workspace/vllm/out/agentx_baseline_qwen38/fp8_nospec/smoke/seed42_c8/aiperf_artifacts/profile_export.jsonl (record_export_jsonl_writer.py:62)
+19:50:22.651 INFO     Registered: Worker_Manager ('worker_manager') [0/0] (service_registry.py:196)
+19:50:22.652 INFO     Registered Worker Manager (id: 'worker_manager') (system_controller_dispatch.py:146)
+19:50:22.652 INFO     Registered Worker Manager (id: 'worker_manager') (system_controller_dispatch.py:146)
+19:50:22.652 INFO     Registered: Records_Manager ('records_manager') [0/0] (service_registry.py:196)
+19:50:22.652 INFO     Registered Records Manager (id: 'records_manager') (system_controller_dispatch.py:146)
+19:50:22.652 INFO     Registered Records Manager (id: 'records_manager') (system_controller_dispatch.py:146)
+19:50:22.668 INFO     Server Metrics: Discovered 1 endpoints: ['http://127.0.0.1:8610/metrics'] (manager.py:197)
+19:50:22.728 INFO     Registered: Dataset_Manager ('dataset_manager') [0/0] (service_registry.py:196)
+19:50:22.728 INFO     Registered Dataset Manager (id: 'dataset_manager') (system_controller_dispatch.py:146)
+19:50:22.728 INFO     Registered: Server_Metrics_Manager ('server_metrics_manager') [0/0] (service_registry.py:196)
+19:50:22.728 INFO     Registered Server Metrics Manager (id: 'server_metrics_manager') (system_controller_dispatch.py:146)
+19:50:22.736 INFO     Registered: Record_Processor ('record_processor_ba2cb443') [0/0] (service_registry.py:196)
+19:50:22.736 INFO     Registered Record Processor (id: 'record_processor_ba2cb443') (system_controller_dispatch.py:146)
+19:50:22.740 INFO     Registered: Record_Processor ('record_processor_ed3a3668') [0/0] (service_registry.py:196)
+19:50:22.740 INFO     Registered Record Processor (id: 'record_processor_ed3a3668') (system_controller_dispatch.py:146)
+19:50:22.740 INFO     Registered Record Processor (id: 'record_processor_ed3a3668') (system_controller_dispatch.py:146)
+19:50:22.755 INFO     Registered: Timing_Manager ('timing_manager') [0/0] (service_registry.py:196)
+19:50:22.755 INFO     Registered Timing Manager (id: 'timing_manager') (system_controller_dispatch.py:146)
+19:50:22.755 INFO     Registered Timing Manager (id: 'timing_manager') (system_controller_dispatch.py:146)
+19:50:22.769 INFO     Registered Server Metrics Manager (id: 'server_metrics_manager') (system_controller_dispatch.py:146)
+19:50:22.779 INFO     Registered Dataset Manager (id: 'dataset_manager') (system_controller_dispatch.py:146)
+19:50:22.817 INFO     Registered: Worker ('worker_0f371bfc') [0/0] (service_registry.py:196)
+19:50:22.817 INFO     Registered Worker (id: 'worker_0f371bfc') (system_controller_dispatch.py:146)
+19:50:22.818 INFO     Registered: Worker ('worker_912f4f2e') [0/0] (service_registry.py:196)
+19:50:22.818 INFO     Registered Worker (id: 'worker_912f4f2e') (system_controller_dispatch.py:146)
+19:50:22.821 INFO     Registered: Worker ('worker_9491ca54') [0/0] (service_registry.py:196)
+19:50:22.821 INFO     Registered Worker (id: 'worker_9491ca54') (system_controller_dispatch.py:146)
+19:50:22.822 INFO     Registered: Worker ('worker_34b60d00') [0/0] (service_registry.py:196)
+19:50:22.822 INFO     Registered Worker (id: 'worker_34b60d00') (system_controller_dispatch.py:146)
+19:50:22.822 INFO     Registered Worker (id: 'worker_34b60d00') (system_controller_dispatch.py:146)
+19:50:22.827 INFO     Registered: Worker ('worker_180ab3d0') [0/0] (service_registry.py:196)
+19:50:22.828 INFO     Registered Worker (id: 'worker_180ab3d0') (system_controller_dispatch.py:146)
+19:50:22.875 INFO     Registered Record Processor (id: 'record_processor_ba2cb443') (system_controller_dispatch.py:146)
+19:50:22.875 INFO     Registered: Worker ('worker_8a4225ec') [0/0] (service_registry.py:196)
+19:50:22.875 INFO     Registered Worker (id: 'worker_8a4225ec') (system_controller_dispatch.py:146)
+19:50:22.876 INFO     Registered: Worker ('worker_45b28cc8') [0/0] (service_registry.py:196)
+19:50:22.876 INFO     Registered Worker (id: 'worker_45b28cc8') (system_controller_dispatch.py:146)
+19:50:22.876 INFO     Registered: Worker ('worker_2b7457e8') [0/0] (service_registry.py:196)
+19:50:22.876 INFO     Registered Worker (id: 'worker_2b7457e8') (system_controller_dispatch.py:146)
+19:50:22.917 INFO     Registered Worker (id: 'worker_0f371bfc') (system_controller_dispatch.py:146)
+19:50:22.918 INFO     Registered Worker (id: 'worker_912f4f2e') (system_controller_dispatch.py:146)
+19:50:22.921 INFO     Registered Worker (id: 'worker_9491ca54') (system_controller_dispatch.py:146)
+19:50:22.927 INFO     Registered Worker (id: 'worker_180ab3d0') (system_controller_dispatch.py:146)
+19:50:22.929 INFO     Registered Worker (id: 'worker_8a4225ec') (system_controller_dispatch.py:146)
+19:50:22.943 INFO     Registered Worker (id: 'worker_45b28cc8') (system_controller_dispatch.py:146)
+19:50:22.946 INFO     Registered Worker (id: 'worker_2b7457e8') (system_controller_dispatch.py:146)
+19:50:23.080 INFO     System state: initializing -> configuring (system_controller.py:700)
+19:50:23.081 INFO     AIPerf System is CONFIGURING (system_controller.py:536)
+19:50:23.081 INFO     Configuring all services to start profiling (system_controller.py:713)
+19:50:23.082 INFO     Waiting for dataset to be configured before configuring timing (manager.py:149)
+19:50:23.082 INFO     Tokenization is disabled for this endpoint, skipping tokenizer configuration (inference_result_parser.py:85)
+19:50:23.082 INFO     Tokenization is disabled for this endpoint, skipping tokenizer configuration (inference_result_parser.py:85)
+19:50:23.091 INFO     Server Metrics: Capturing baseline metrics... (manager.py:333)
+19:50:23.119 INFO     Configuring tokenizer(s) for dataset manager (dataset_manager.py:271)
+19:50:23.122 INFO     Skipping unsupported summary metric: http_request_size_bytes (data_collector.py:308)
+19:50:23.122 INFO     Skipping unsupported summary metric: http_response_size_bytes (data_collector.py:308)
+19:50:23.124 INFO     Server metrics enabled - 1/1 endpoint(s) reachable. (system_controller.py:1048)
+19:50:23.990 INFO     Tokenizer(s) configured in 0.87 seconds (dataset_manager.py:275)
+19:50:23.990 INFO     Configuring dataset for dataset_manager (dataset_manager.py:281)
+19:50:24.586 INFO     Loading HuggingFace dataset 'semianalysisai/cc-traces-weka-062126-256k' (split=train) (base_hf_dataset.py:48)
+19:50:25.040 INFO     HTTP Request: HEAD https://huggingface.co/datasets/semianalysisai/cc-traces-weka-062126-256k/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect" (_client.py:1025)
+19:50:25.111 INFO     HTTP Request: HEAD https://huggingface.co/api/resolve-cache/datasets/semianalysisai/cc-traces-weka-062126-256k/8fecd2fc56694469f758f0afbbb6335ad3043740/README.md?%2Fdatasets%2Fsemianalysisai%2Fcc-traces-weka-062126-256k%2Fresolve%2Fmain%2FREADME.md=&etag=%22857e481721f44c5654b3900835756274d48fb258%22 "HTTP/1.1 200 OK" (_client.py:1025)
+19:50:25.183 INFO     HTTP Request: HEAD https://huggingface.co/datasets/semianalysisai/cc-traces-weka-062126-256k/resolve/8fecd2fc56694469f758f0afbbb6335ad3043740/cc-traces-weka-062126-256k.py "HTTP/1.1 404 Not Found" (_client.py:1025)
+19:50:25.385 INFO     HTTP Request: HEAD https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/semianalysisai/cc-traces-weka-062126-256k/semianalysisai/cc-traces-weka-062126-256k.py "HTTP/1.1 404 Not Found" (_client.py:1025)
+19:50:25.453 INFO     HTTP Request: GET https://huggingface.co/api/datasets/semianalysisai/cc-traces-weka-062126-256k/revision/8fecd2fc56694469f758f0afbbb6335ad3043740 "HTTP/1.1 200 OK" (_client.py:1025)
+19:50:25.523 INFO     HTTP Request: HEAD https://huggingface.co/datasets/semianalysisai/cc-traces-weka-062126-256k/resolve/8fecd2fc56694469f758f0afbbb6335ad3043740/.huggingface.yaml "HTTP/1.1 404 Not Found" (_client.py:1025)
+19:50:25.742 INFO     HTTP Request: GET https://datasets-server.huggingface.co/info?dataset=semianalysisai/cc-traces-weka-062126-256k "HTTP/1.1 200 OK" (_client.py:1025)
+19:50:25.812 INFO     HTTP Request: GET https://huggingface.co/api/datasets/semianalysisai/cc-traces-weka-062126-256k/tree/8fecd2fc56694469f758f0afbbb6335ad3043740?recursive=false&expand=false "HTTP/1.1 200 OK" (_client.py:1025)
+19:50:25.880 INFO     HTTP Request: HEAD https://huggingface.co/datasets/semianalysisai/cc-traces-weka-062126-256k/resolve/8fecd2fc56694469f758f0afbbb6335ad3043740/dataset_infos.json "HTTP/1.1 404 Not Found" (_client.py:1025)
+19:50:30.384 INFO     weka trace selection [semianalysisai/cc-traces-weka-062126-256k]: scanned 393, rejected_by_maxctx 393 (--max-context-length=8192), eligible 0, loaded 0 (--num-dataset-entries=393), largest_observed_peak_context 255,999, smallest_observed_peak_context 44,048 (selection.py:77)
+19:50:30.387 ERROR    Dataset configuration failed: DatasetLoaderError('No eligible traces in semianalysisai/cc-traces-weka-062126-256k after filter-then-cap (scanned 393, --max-context-length=8192, --num-dataset-entries=393). Smallest trace requires 44048 tokens; raise --max-context-length to at least that (e.g. --max-context-length 44048) to admit any trace.') (dataset_manager.py:193)
+Traceback (most recent call last):
+  File "/workspace/SemiAnalysis/aiperf-venv/lib/python3.12/site-packages/aiperf/dataset/dataset_manager.py", line 191, in _profile_configure_command
+    await self._do_profile_configure(message)
+  File "/workspace/SemiAnalysis/aiperf-venv/lib/python3.12/site-packages/aiperf/dataset/dataset_manager.py", line 244, in _do_profile_configure
+    await self._configure_dataset_locked()
+  File "/workspace/SemiAnalysis/aiperf-venv/lib/python3.12/site-packages/aiperf/dataset/dataset_manager.py", line 283, in _configure_dataset_locked
+    await self._configure_dataset()
+  File "/workspace/SemiAnalysis/aiperf-venv/lib/python3.12/site-packages/aiperf/dataset/dataset_manager.py", line 951, in _configure_dataset
+    conversations = await self._load_public_dataset()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/SemiAnalysis/aiperf-venv/lib/python3.12/site-packages/aiperf/dataset/dataset_manager.py", line 570, in _load_public_dataset
+    return await composer.create_dataset_async()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/SemiAnalysis/aiperf-venv/lib/python3.12/site-packages/aiperf/dataset/composer/public.py", line 53, in create_dataset_async
+    data = await loader.load_dataset()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/SemiAnalysis/aiperf-venv/lib/python3.12/site-packages/aiperf/dataset/loader/semianalysis_cc_traces_weka.py", line 114, in load_dataset
+    return await loop.run_in_executor(None, self._validate_rows, ds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/SemiAnalysis/aiperf-venv/lib/python3.12/site-packages/aiperf/dataset/loader/semianalysis_cc_traces_weka.py", line 194, in _validate_rows
+    raise_on_empty_selection(
+  File "/workspace/SemiAnalysis/aiperf-venv/lib/python3.12/site-packages/aiperf/dataset/loader/selection.py", line 111, in raise_on_empty_selection
+    raise DatasetLoaderError(msg)
+aiperf.common.exceptions.DatasetLoaderError: No eligible traces in semianalysisai/cc-traces-weka-062126-256k after filter-then-cap (scanned 393, --max-context-length=8192, --num-dataset-entries=393). Smallest trace requires 44048 tokens; raise --max-context-length to at least that (e.g. --max-context-length 44048) to admit any trace.
+19:50:30.393 ERROR    Failed to handle command profile_configure: No eligible traces in semianalysisai/cc-traces-weka-062126-256k after filter-then-cap (scanned 393, --max-context-length=8192, --num-dataset-entries=393). Smallest trace requires 44048 tokens; raise --max-context-length to at least that (e.g. --max-context-length 44048) to admit any trace. (base_component_service.py:522)
+19:50:30.394 ERROR    Received dataset configuration failed notification from dataset_manager: DatasetLoaderError: No eligible traces in semianalysisai/cc-traces-weka-062126-256k after filter-then-cap (scanned 393, --max-context-length=8192, --num-dataset-entries=393). Smallest trace requires 44048 tokens; raise --max-context-length to at least that (e.g. --max-context-length 44048) to admit any trace. (manager.py:139)
+19:50:30.394 ERROR    Failed to handle command profile_configure: Dataset configuration failed: DatasetLoaderError: No eligible traces in semianalysisai/cc-traces-weka-062126-256k after filter-then-cap (scanned 393, --max-context-length=8192, --num-dataset-entries=393). Smallest trace requires 44048 tokens; raise --max-context-length to at least that (e.g. --max-context-length 44048) to admit any trace. (base_component_service.py:522)
+19:50:30.395 ERROR    Error running Hook(func=<bound method SystemController._start_services of <SystemController system_controller (state=starting)>>, params=None) hook for SystemController: Failed to perform operation 'Configure Profiling' (aiperf_lifecycle_mixin.py:153)
+19:50:30.395 ERROR    Failed for SystemController (id=system_controller): SystemController._start_services: Failed to perform operation 'Configure Profiling' (aiperf_lifecycle_mixin.py:354)
+19:50:30.396 INFO     System state: configuring -> shutdown (system_controller.py:700)
+
+╭─ AIPerf System Exit Errors ──────────────────────────────────────────────────╮
+│ • Service: dataset_manager                                                   │
+│    Operation: Configure Profiling                                            │
+│    Error: CommandError                                                       │
+│    Reason: No eligible traces in semianalysisai/cc-traces-weka-062126-256k   │
+│            after filter-then-cap (scanned 393, --max-context-                │
+│            length=8192, --num-dataset-entries=393). Smallest                 │
+│            trace requires 44048 tokens; raise --max-context-                 │
+│            length to at least that (e.g. --max-context-length                │
+│            44048) to admit any trace.                                        │
+│                                                                              │
+│ • Service: system_controller                                                 │
+│    Operation: Starting                                                       │
+│    Error: HookError                                                          │
+│    Reason: HookError("SystemController._start_services: Failed to perform    │
+│            operation 'Configure Profiling'")                                 │
+│    Cause: LifecycleOperationError("Failed to perform operation 'Configure    │
+│            Profiling'")                                                      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Log File: 
+/workspace/vllm/out/agentx_baseline_qwen38/fp8_nospec/smoke/seed42_c8/aiperf_art
+ifacts/logs/aiperf.log
+
