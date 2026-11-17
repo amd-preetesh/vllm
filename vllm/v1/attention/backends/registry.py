@@ -66,6 +66,12 @@ class AttentionBackendEnum(Enum, metaclass=_AttentionBackendEnumMeta):
     ROCM_AITER_FA = (
         "vllm.v1.attention.backends.rocm_aiter_fa.AiterFlashAttentionBackend"
     )
+    # Non-causal split-KV decode for a DSpark draft sitting beside an
+    # UltraQuant target. ROCM_AITER_FA keeps the unsplit paged kernel.
+    ROCM_AITER_FA_DSPARK = (
+        "vllm.v1.attention.backends.rocm_aiter_fa_dspark."
+        "AiterFlashAttentionDSparkBackend"
+    )
     ROCM_AITER_MLA_SPARSE = (
         "vllm.v1.attention.backends.mla.rocm_aiter_mla_sparse.ROCMAiterMLASparseBackend"
     )
