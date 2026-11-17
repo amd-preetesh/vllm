@@ -1,62 +1,72 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
-"""ROCM_AITER_FA for a DSpark draft beside an UltraQuant target.
+"""DSpark draft attention beside an UltraQuant target.
 
-The draft reads its own KV cache, not the UltraQuant target cache. A DSpark
-step scores a non-causal block (k=7 is 8 query rows) against the whole draft
-context. ``ROCM_AITER_FA`` sends that batch to ``flash_attn_with_kvcache``,
-which does not split the context. This backend sends that batch to
-``noncausal_decode_attention``. Every other batch uses the AITER FA path.
+UltraQuant pages are LBNHC. Shipping ``ROCM_AITER_FA`` is LBHNC/LHBNC, so the
+two backends have no layout in common and the draft cannot be allocated next
+to the target. This backend accepts LBNHC and reads a StreamingLLM span: the
+first 4 tokens plus the last 2048. That is the DSpark draft path. Target
+verification stays on UltraQuant and still sees the full context.
 
 Selected by default when the target KV dtype is ``ultraquant_4bit`` and the
-speculative config does not name a draft attention backend. Target
-verification stays on the UltraQuant backend and still sees the full context.
+speculative config does not name a draft attention backend.
 """
+
+from dataclasses import replace
 
 import torch
 
-from vllm._aiter_ops import rocm_aiter_ops
 from vllm.logger import init_logger
-from vllm.platforms import current_platform
+from vllm.v1.attention.backend import MultipleOf
 from vllm.v1.attention.backends.rocm_aiter_fa import (
     AiterFlashAttentionBackend,
     AiterFlashAttentionImpl,
     AiterFlashAttentionMetadata,
 )
-from vllm.v1.attention.ops.aiter_noncausal_decode import (
-    default_num_segments,
-    noncausal_decode_attention,
-)
-from vllm.v1.kv_cache_interface import is_quantized_kv_cache
+from vllm.v1.attention.ops.dspark_draft_window import build_draft_window_sink_tables
+from vllm.v1.kv_cache_interface import KVCacheLayout
 
 logger = init_logger(__name__)
 
+# Measured DSpark draft span: a 4-token sink plus the last 2048 tokens.
+DSPARK_DRAFT_SINK = 4
+DSPARK_DRAFT_WINDOW = 2048
+
+
+def _window_decode_metadata(
+    attn_metadata: AiterFlashAttentionMetadata,
+    num_decodes: int,
+    page_win: torch.Tensor,
+    seq_win: torch.Tensor,
+) -> AiterFlashAttentionMetadata:
+    """Point decode rows at the packed window. Prefill rows stay full-context."""
+    if num_decodes == attn_metadata.block_table.shape[0]:
+        return replace(attn_metadata, block_table=page_win, seq_lens=seq_win)
+
+    rest = attn_metadata.block_table[num_decodes:]
+    win_w = page_win.shape[1]
+    rest_w = rest.shape[1] if rest.numel() else 0
+    out_w = max(win_w, rest_w)
+    new_bt = torch.zeros(
+        (attn_metadata.block_table.shape[0], out_w),
+        device=page_win.device,
+        dtype=page_win.dtype,
+    )
+    new_bt[:num_decodes, :win_w] = page_win
+    if rest_w > 0:
+        new_bt[num_decodes:, :rest_w] = rest
+
+    src_seq = attn_metadata.seq_lens
+    if src_seq.device != page_win.device:
+        if page_win.device.type == "cuda" and torch.cuda.is_current_stream_capturing():
+            return attn_metadata
+        src_seq = src_seq.to(device=page_win.device)
+    new_seq = src_seq.clone()
+    new_seq[:num_decodes] = seq_win
+    return replace(attn_metadata, block_table=new_bt, seq_lens=new_seq)
+
 
 class AiterFlashAttentionDSparkImpl(AiterFlashAttentionImpl):
-    def _use_noncausal_split(
-        self,
-        attn_metadata: AiterFlashAttentionMetadata,
-        output_scale: torch.Tensor | None,
-        output_block_scale: torch.Tensor | None,
-    ) -> bool:
-        decode_metadata = attn_metadata.decode_metadata
-        return (
-            attn_metadata.causal is False
-            and attn_metadata.num_decodes > 0
-            and attn_metadata.num_prefills == 0
-            and attn_metadata.num_extends == 0
-            and decode_metadata is not None
-            and decode_metadata.max_query_len > 1
-            and self.sliding_window[0] == -1
-            and self.sinks is None
-            and self.alibi_slopes is None
-            and not self.logits_soft_cap
-            and self.kv_sharing_target_layer_name is None
-            and output_scale is None
-            and output_block_scale is None
-            and not rocm_aiter_ops.is_shuffle_kv_cache_enabled()
-        )
-
     def forward(
         self,
         layer: torch.nn.Module,
@@ -69,62 +79,38 @@ class AiterFlashAttentionDSparkImpl(AiterFlashAttentionImpl):
         output_scale: torch.Tensor | None = None,
         output_block_scale: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        if attn_metadata is None or not self._use_noncausal_split(
-            attn_metadata, output_scale, output_block_scale
-        ):
-            return super().forward(
-                layer,
-                query,
-                key,
-                value,
-                kv_cache,
-                attn_metadata,
-                output,
-                output_scale=output_scale,
-                output_block_scale=output_block_scale,
+        num_decodes = int(getattr(attn_metadata, "num_decodes", 0) or 0)
+        if attn_metadata is not None and num_decodes > 0:
+            # kv_cache: [num_blocks, 2, block_size, ...]
+            block_size = int(kv_cache.shape[2])
+            page_win, seq_win = build_draft_window_sink_tables(
+                attn_metadata.block_table[:num_decodes],
+                attn_metadata.seq_lens[:num_decodes],
+                block_size=block_size,
+                window=DSPARK_DRAFT_WINDOW,
+                sink=DSPARK_DRAFT_SINK,
             )
-
-        key_cache, value_cache = self._split_kv_cache(kv_cache)
-        quantized = is_quantized_kv_cache(self.kv_cache_dtype)
-        if quantized:
-            key_cache = key_cache.view(current_platform.fp8_dtype())
-            value_cache = value_cache.view(current_platform.fp8_dtype())
-
-        num_decodes = attn_metadata.num_decodes
-        num_decode_tokens = attn_metadata.num_decode_tokens
-        decode_metadata = attn_metadata.decode_metadata
-        assert decode_metadata is not None
-        max_query_len = decode_metadata.max_query_len
-        # Segments depend on the batch shape, not the context length, so a
-        # captured graph keeps the split it needs at long context.
-        num_segments = default_num_segments(
-            num_decodes,
-            self.num_kv_heads,
-            max_query_len,
-            query.device,
-            self.num_queries_per_kv,
+            logger.info_once(
+                "DSpark draft attention is AITER FA with an UltraQuant "
+                "layout: a %d-token sink plus the last %d tokens. Target "
+                "verification is unchanged.",
+                DSPARK_DRAFT_SINK,
+                DSPARK_DRAFT_WINDOW,
+            )
+            attn_metadata = _window_decode_metadata(
+                attn_metadata, num_decodes, page_win, seq_win
+            )
+        return super().forward(
+            layer,
+            query,
+            key,
+            value,
+            kv_cache,
+            attn_metadata,
+            output,
+            output_scale=output_scale,
+            output_block_scale=output_block_scale,
         )
-        logger.info_once(
-            "DSpark draft decode is using the split-KV kernel "
-            "(query_len=%d, segments=%d).",
-            max_query_len,
-            num_segments,
-        )
-        noncausal_decode_attention(
-            q=query[:num_decode_tokens],
-            k=key_cache,
-            v=value_cache,
-            out=output[:num_decode_tokens],
-            cu_seqlens_q=attn_metadata.query_start_loc[: num_decodes + 1],
-            max_seqlen_q=max_query_len,
-            seqused_k=attn_metadata.seq_lens[:num_decodes],
-            block_table=attn_metadata.block_table[:num_decodes],
-            softmax_scale=self.scale,
-            k_descale=layer._k_scale if quantized else None,
-            v_descale=layer._v_scale if quantized else None,
-            num_segments=num_segments,
-        )
-        return output
 
 
 class AiterFlashAttentionDSparkBackend(AiterFlashAttentionBackend):
@@ -135,3 +121,26 @@ class AiterFlashAttentionDSparkBackend(AiterFlashAttentionBackend):
     @staticmethod
     def get_impl_cls() -> type[AiterFlashAttentionDSparkImpl]:
         return AiterFlashAttentionDSparkImpl
+
+    @classmethod
+    def supported_kv_cache_layouts(cls) -> tuple[KVCacheLayout, ...]:
+        # LBNHC first so the draft allocates next to an UltraQuant target.
+        return (KVCacheLayout.LBNHC, KVCacheLayout.LBHNC, KVCacheLayout.LHBNC)
+
+    @classmethod
+    def get_preferred_block_size(cls, default_block_size: int) -> int:
+        del default_block_size
+        return 64
+
+    @classmethod
+    def supports_block_size(cls, block_size: int | None) -> bool:
+        if block_size is None:
+            return True
+        return block_size % 64 == 0
+
+    @staticmethod
+    def get_supported_kernel_block_sizes(kv_cache_spec=None) -> list[int | MultipleOf]:
+        del kv_cache_spec
+        # 64 matches the UltraQuant page. Offering 16 lets the hybrid manager
+        # settle on a 16-token block and breaks the UltraQuant kernel stride.
+        return [64]

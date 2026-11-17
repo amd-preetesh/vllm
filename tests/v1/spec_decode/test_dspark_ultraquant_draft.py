@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
-"""Draft selection when the DSpark target KV cache is UltraQuant."""
+"""Draft selection when the DSpark target KV cache is UltraQuant.
+
+The default draft kernel is AITER FA on the UltraQuant layout, reading a
+4-token sink plus the last 2048 tokens.
+"""
 
 from types import SimpleNamespace
 

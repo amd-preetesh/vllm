@@ -35,10 +35,9 @@ def _resolve_dspark_attention_backend(
                 target_backend.name,
             )
         return target_backend
-    # UltraQuant pages are not a draft KV layout. The Qwen draft attends to
-    # its own cache with a non-causal block, and the unsplit paged kernel
-    # walks that context once per step. This is the default for that pair,
-    # not an environment switch.
+    # UltraQuant pages are LBNHC, which shipping AITER FA does not allocate.
+    # The DSpark draft reads a 4-token sink plus the last 2048 tokens through
+    # that layout. This is the default for the pair, not an environment switch.
     if target_kv_cache_dtype == "ultraquant_4bit":
         logger.info_once(
             "DSpark draft attention is ROCM_AITER_FA_DSPARK because the "
